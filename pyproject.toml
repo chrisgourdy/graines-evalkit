@@ -1,0 +1,93 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "graines-evalkit"
+version = "0.1.0.dev0"
+description = "EVALKIT — evaluation, observability and continuous-improvement framework for AI agents"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [{ name = "Graines AI", email = "cgourdy@graines.ai" }]
+keywords = ["llm", "agents", "evaluation", "observability", "token-accounting", "cost-control"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+]
+dependencies = [
+  "pydantic>=2.7,<3",
+  "typer>=0.12",
+  "rich>=13",
+  "numpy>=1.26",
+  "scipy>=1.12",
+  "jinja2>=3.1",
+  "pyyaml>=6",
+]
+
+[project.optional-dependencies]
+api = ["fastapi>=0.110", "uvicorn[standard]>=0.29"]
+anthropic = ["anthropic>=0.30"]
+openai = ["openai>=1.30"]
+otel = ["opentelemetry-api>=1.24", "opentelemetry-sdk>=1.24"]
+all = ["graines-evalkit[api,anthropic,openai,otel]"]
+
+[project.scripts]
+evalkit = "evalkit.cli.main:app"
+
+[project.urls]
+Homepage = "https://graines.ai"
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "pytest-cov>=5",
+  "hypothesis>=6.100",
+  "ruff>=0.5",
+  "mypy>=1.10",
+  "types-PyYAML",
+  "pip-audit>=2.7",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/evalkit"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "RUF", "ANN", "S", "PTH"]
+ignore = ["ANN401", "S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "ANN"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+mypy_path = "src"
+packages = ["evalkit"]
+plugins = ["pydantic.mypy"]
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = ["scipy.*", "yaml.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+  "integration: requires an external provider (never run by default)",
+  "statistical: statistical property tests (seeded)",
+]
+
+[tool.coverage.run]
+source = ["evalkit"]
+branch = true

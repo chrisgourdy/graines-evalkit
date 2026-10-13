@@ -1,0 +1,628 @@
+{
+  "$defs": {
+    "Cost": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Amount"
+        },
+        "breakdown": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "description": "Per-category amounts (input, output, cache, ...).",
+          "title": "Breakdown",
+          "type": "object"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Currency"
+        },
+        "fx": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FxRate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "price_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "PriceEntry used, for traceability.",
+          "title": "Price Id"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/CostStatus"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "Cost",
+      "type": "object"
+    },
+    "CostStatus": {
+      "enum": [
+        "MEASURED",
+        "ESTIMATED",
+        "UNKNOWN"
+      ],
+      "title": "CostStatus",
+      "type": "string"
+    },
+    "EventType": {
+      "enum": [
+        "project.created",
+        "config.changed",
+        "campaign.started",
+        "campaign.ended",
+        "scenario.started",
+        "scenario.ended",
+        "agent.called",
+        "model.called",
+        "tool.called",
+        "usage.recorded",
+        "error",
+        "retry",
+        "budget.reserved",
+        "budget.settled",
+        "budget.released",
+        "budget.threshold",
+        "budget.blocked",
+        "evaluation.result",
+        "baseline.changed",
+        "regression.detected",
+        "incident.opened",
+        "fix.proposed",
+        "test.result",
+        "validation.decision",
+        "version.changed",
+        "migration",
+        "permission.changed",
+        "human.intervention",
+        "correction"
+      ],
+      "title": "EventType",
+      "type": "string"
+    },
+    "FxRate": {
+      "additionalProperties": false,
+      "properties": {
+        "as_of": {
+          "format": "date",
+          "title": "As Of",
+          "type": "string"
+        },
+        "base": {
+          "title": "Base",
+          "type": "string"
+        },
+        "quote": {
+          "title": "Quote",
+          "type": "string"
+        },
+        "rate": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Rate"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "base",
+        "quote",
+        "rate",
+        "source",
+        "as_of"
+      ],
+      "title": "FxRate",
+      "type": "object"
+    },
+    "Severity": {
+      "enum": [
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "TokenUsage": {
+      "additionalProperties": false,
+      "properties": {
+        "cache_creation_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Cache-write tokens. May be a subset of input_tokens.",
+          "title": "Cache Creation Tokens"
+        },
+        "cached_input_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Cache-read input tokens. May be a subset of input_tokens.",
+          "title": "Cached Input Tokens"
+        },
+        "estimation_granularity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Granularity of the estimate, e.g. 'call', 'step', 'run'.",
+          "title": "Estimation Granularity"
+        },
+        "estimation_method": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Required when source=ESTIMATED (e.g. 'tiktoken:cl100k_base').",
+          "title": "Estimation Method"
+        },
+        "input_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Input Tokens"
+        },
+        "modality_tokens": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "description": "Tokens attributed to special modalities (e.g. 'image', 'audio').",
+          "title": "Modality Tokens",
+          "type": "object"
+        },
+        "model": {
+          "description": "Model identifier as billed by the provider.",
+          "title": "Model",
+          "type": "string"
+        },
+        "native_units": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Provider-native billing units for non-token items (e.g. 'images': 2).",
+          "title": "Native Units",
+          "type": "object"
+        },
+        "output_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Tokens"
+        },
+        "provider": {
+          "description": "Provider identifier, e.g. 'anthropic', 'openai', 'sim'.",
+          "title": "Provider",
+          "type": "string"
+        },
+        "raw": {
+          "additionalProperties": true,
+          "description": "Provider raw usage payload for audit (secrets redacted).",
+          "title": "Raw",
+          "type": "object"
+        },
+        "reasoning_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Reasoning/thinking tokens. May be a subset of output_tokens.",
+          "title": "Reasoning Tokens"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/UsageSource"
+        },
+        "subsets": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Declares inclusion relations, e.g. {'cached_input_tokens': 'input_tokens'} means cached_input is already counted inside input. Drives double-count-safe aggregation.",
+          "title": "Subsets",
+          "type": "object"
+        },
+        "total_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total Tokens"
+        }
+      },
+      "required": [
+        "provider",
+        "model",
+        "source"
+      ],
+      "title": "TokenUsage",
+      "type": "object"
+    },
+    "UsageSource": {
+      "description": "Origin of a token-usage figure (see docs/TOKEN_ACCOUNTING.md).",
+      "enum": [
+        "REPORTED",
+        "ESTIMATED",
+        "UNKNOWN"
+      ],
+      "title": "UsageSource",
+      "type": "string"
+    }
+  },
+  "$id": "https://graines.ai/evalkit/schemas/AuditEvent.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "actor": {
+      "description": "'system', 'scheduler', 'cli:<user>', 'api:<key_id>', 'agent:<id>'.",
+      "title": "Actor",
+      "type": "string"
+    },
+    "agent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Agent Id"
+    },
+    "agent_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Agent Version"
+    },
+    "campaign_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Campaign Id"
+    },
+    "component": {
+      "description": "Emitting module, e.g. 'core', 'cost_controller'.",
+      "title": "Component",
+      "type": "string"
+    },
+    "corrects": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "event_id this event corrects.",
+      "title": "Corrects"
+    },
+    "correlation_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Correlation Id"
+    },
+    "cost": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Cost"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "duration_ms": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Duration Ms"
+    },
+    "event_id": {
+      "title": "Event Id",
+      "type": "string"
+    },
+    "event_type": {
+      "$ref": "#/$defs/EventType"
+    },
+    "parent_span_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Span Id"
+    },
+    "payload": {
+      "additionalProperties": true,
+      "description": "Small, redacted, structured payload.",
+      "title": "Payload",
+      "type": "object"
+    },
+    "payload_ref": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Artifact reference, never inline secrets.",
+      "title": "Payload Ref"
+    },
+    "project_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Project Id"
+    },
+    "run_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Run Id"
+    },
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "Contract schema version this object was produced with.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sequence": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Monotonic per-store sequence assigned by the store.",
+      "title": "Sequence"
+    },
+    "severity": {
+      "$ref": "#/$defs/Severity",
+      "default": "INFO"
+    },
+    "span_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Span Id"
+    },
+    "status": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Status"
+    },
+    "timestamp": {
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "trace_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Trace Id"
+    },
+    "usage": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TokenUsage"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "version": {
+      "description": "EVALKIT version that emitted the event.",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "event_id",
+    "timestamp",
+    "event_type",
+    "actor",
+    "component",
+    "version"
+  ],
+  "title": "AuditEvent",
+  "type": "object"
+}

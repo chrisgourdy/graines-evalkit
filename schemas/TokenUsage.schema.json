@@ -1,0 +1,175 @@
+{
+  "$defs": {
+    "UsageSource": {
+      "description": "Origin of a token-usage figure (see docs/TOKEN_ACCOUNTING.md).",
+      "enum": [
+        "REPORTED",
+        "ESTIMATED",
+        "UNKNOWN"
+      ],
+      "title": "UsageSource",
+      "type": "string"
+    }
+  },
+  "$id": "https://graines.ai/evalkit/schemas/TokenUsage.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "cache_creation_tokens": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Cache-write tokens. May be a subset of input_tokens.",
+      "title": "Cache Creation Tokens"
+    },
+    "cached_input_tokens": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Cache-read input tokens. May be a subset of input_tokens.",
+      "title": "Cached Input Tokens"
+    },
+    "estimation_granularity": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Granularity of the estimate, e.g. 'call', 'step', 'run'.",
+      "title": "Estimation Granularity"
+    },
+    "estimation_method": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Required when source=ESTIMATED (e.g. 'tiktoken:cl100k_base').",
+      "title": "Estimation Method"
+    },
+    "input_tokens": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Input Tokens"
+    },
+    "modality_tokens": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "description": "Tokens attributed to special modalities (e.g. 'image', 'audio').",
+      "title": "Modality Tokens",
+      "type": "object"
+    },
+    "model": {
+      "description": "Model identifier as billed by the provider.",
+      "title": "Model",
+      "type": "string"
+    },
+    "native_units": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "description": "Provider-native billing units for non-token items (e.g. 'images': 2).",
+      "title": "Native Units",
+      "type": "object"
+    },
+    "output_tokens": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Output Tokens"
+    },
+    "provider": {
+      "description": "Provider identifier, e.g. 'anthropic', 'openai', 'sim'.",
+      "title": "Provider",
+      "type": "string"
+    },
+    "raw": {
+      "additionalProperties": true,
+      "description": "Provider raw usage payload for audit (secrets redacted).",
+      "title": "Raw",
+      "type": "object"
+    },
+    "reasoning_tokens": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Reasoning/thinking tokens. May be a subset of output_tokens.",
+      "title": "Reasoning Tokens"
+    },
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "Contract schema version this object was produced with.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/UsageSource"
+    },
+    "subsets": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Declares inclusion relations, e.g. {'cached_input_tokens': 'input_tokens'} means cached_input is already counted inside input. Drives double-count-safe aggregation.",
+      "title": "Subsets",
+      "type": "object"
+    },
+    "total_tokens": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Total Tokens"
+    }
+  },
+  "required": [
+    "provider",
+    "model",
+    "source"
+  ],
+  "title": "TokenUsage",
+  "type": "object"
+}

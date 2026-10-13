@@ -1,0 +1,363 @@
+{
+  "$defs": {
+    "ConfidenceInterval": {
+      "additionalProperties": false,
+      "properties": {
+        "high": {
+          "title": "High",
+          "type": "number"
+        },
+        "level": {
+          "description": "e.g. 0.95",
+          "exclusiveMaximum": 1,
+          "minimum": 0,
+          "title": "Level",
+          "type": "number"
+        },
+        "low": {
+          "title": "Low",
+          "type": "number"
+        },
+        "method": {
+          "description": "e.g. 'wilson', 'bootstrap_bca', 't'.",
+          "title": "Method",
+          "type": "string"
+        },
+        "n": {
+          "minimum": 0,
+          "title": "N",
+          "type": "integer"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "low",
+        "high",
+        "level",
+        "method",
+        "n"
+      ],
+      "title": "ConfidenceInterval",
+      "type": "object"
+    },
+    "Dimension": {
+      "description": "Evaluated dimensions (docs/METRICS.md defines each, its method and its limits).",
+      "enum": [
+        "accuracy",
+        "compliance",
+        "completeness",
+        "consistency",
+        "format",
+        "constraints",
+        "decision_reliability",
+        "tool_use",
+        "stability",
+        "robustness",
+        "security",
+        "latency",
+        "tokens",
+        "cost",
+        "business"
+      ],
+      "title": "Dimension",
+      "type": "string"
+    },
+    "DimensionScore": {
+      "additionalProperties": false,
+      "properties": {
+        "ci": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConfidenceInterval"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "critical_failures": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Critical Failures",
+          "type": "integer"
+        },
+        "dimension": {
+          "$ref": "#/$defs/Dimension"
+        },
+        "mean_score": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Score"
+        },
+        "measurement": {
+          "$ref": "#/$defs/MeasurementKind"
+        },
+        "n_evaluated": {
+          "minimum": 0,
+          "title": "N Evaluated",
+          "type": "integer"
+        },
+        "n_runs": {
+          "minimum": 0,
+          "title": "N Runs",
+          "type": "integer"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "pass_rate": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pass Rate"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/EvalStatus"
+        }
+      },
+      "required": [
+        "dimension",
+        "status",
+        "measurement",
+        "n_runs",
+        "n_evaluated"
+      ],
+      "title": "DimensionScore",
+      "type": "object"
+    },
+    "EvalStatus": {
+      "description": "Conclusion of an evaluation. Distinct from :class:`ControlState` (did the check run?).",
+      "enum": [
+        "PASS",
+        "WARNING",
+        "FAIL",
+        "INCONCLUSIVE",
+        "NOT_EVALUATED"
+      ],
+      "title": "EvalStatus",
+      "type": "string"
+    },
+    "MeasurementKind": {
+      "description": "Nature of a measured value. Never collapse UNAVAILABLE into 0 or PASS.",
+      "enum": [
+        "OBJECTIVE",
+        "STATISTICAL",
+        "LLM_JUDGED",
+        "HUMAN",
+        "UNAVAILABLE"
+      ],
+      "title": "MeasurementKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://graines.ai/evalkit/schemas/Scorecard.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "agent_version": {
+      "title": "Agent Version",
+      "type": "string"
+    },
+    "aggregate_formula": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Formula, weights, exclusions (human-readable); required with aggregate_score.",
+      "title": "Aggregate Formula"
+    },
+    "aggregate_score": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Aggregate Score"
+    },
+    "baseline_campaign_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Baseline Campaign Id"
+    },
+    "campaign_id": {
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "cost_status": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Cost Status"
+    },
+    "currency": {
+      "default": "USD",
+      "title": "Currency",
+      "type": "string"
+    },
+    "dimensions": {
+      "items": {
+        "$ref": "#/$defs/DimensionScore"
+      },
+      "title": "Dimensions",
+      "type": "array"
+    },
+    "eliminatory_failures": {
+      "description": "Scenario/evaluator ids with blocking FAIL.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Eliminatory Failures",
+      "type": "array"
+    },
+    "evalkit_version": {
+      "title": "Evalkit Version",
+      "type": "string"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "mean_latency_ms": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Mean Latency Ms"
+    },
+    "missing_dimensions": {
+      "items": {
+        "$ref": "#/$defs/Dimension"
+      },
+      "title": "Missing Dimensions",
+      "type": "array"
+    },
+    "overall_status": {
+      "$ref": "#/$defs/EvalStatus"
+    },
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
+    },
+    "regressions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Regressions",
+      "type": "array"
+    },
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "Contract schema version this object was produced with.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scorecard_id": {
+      "title": "Scorecard Id",
+      "type": "string"
+    },
+    "total_cost": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Total Cost"
+    },
+    "validity_warnings": {
+      "description": "Coverage, overfitting, drift, non-equivalence warnings.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Validity Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "scorecard_id",
+    "project_id",
+    "agent_id",
+    "agent_version",
+    "campaign_id",
+    "generated_at",
+    "evalkit_version",
+    "overall_status",
+    "dimensions"
+  ],
+  "title": "Scorecard",
+  "type": "object"
+}

@@ -1,0 +1,235 @@
+{
+  "$defs": {
+    "Criticality": {
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "CRITICAL"
+      ],
+      "title": "Criticality",
+      "type": "string"
+    },
+    "Hypothesis": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "default": "open",
+          "description": "'open' | 'confirmed' | 'rejected'.",
+          "title": "Status",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "title": "Hypothesis",
+      "type": "object"
+    },
+    "TicketStatus": {
+      "enum": [
+        "OPEN",
+        "TRIAGED",
+        "DIAGNOSED",
+        "FIX_PROPOSED",
+        "TESTING",
+        "VALIDATED",
+        "REJECTED",
+        "CLOSED",
+        "DUPLICATE"
+      ],
+      "title": "TicketStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://graines.ai/evalkit/schemas/Ticket.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "agent_version": {
+      "title": "Agent Version",
+      "type": "string"
+    },
+    "component": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Component"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "decision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Decision"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string"
+    },
+    "evidence_refs": {
+      "description": "run/result/event ids.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "expected": {
+      "title": "Expected",
+      "type": "string"
+    },
+    "history": {
+      "description": "Append-only transition log.",
+      "items": {
+        "type": "string"
+      },
+      "title": "History",
+      "type": "array"
+    },
+    "hypotheses": {
+      "items": {
+        "$ref": "#/$defs/Hypothesis"
+      },
+      "title": "Hypotheses",
+      "type": "array"
+    },
+    "impact": {
+      "title": "Impact",
+      "type": "string"
+    },
+    "observed": {
+      "title": "Observed",
+      "type": "string"
+    },
+    "post_fix_results": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Post Fix Results",
+      "type": "array"
+    },
+    "priority": {
+      "default": 3,
+      "description": "1 = highest.",
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Priority",
+      "type": "integer"
+    },
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
+    },
+    "proposed_fix": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Proposed Fix"
+    },
+    "related_tests": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Related Tests",
+      "type": "array"
+    },
+    "related_tickets": {
+      "description": "Similar tickets, kept distinct.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Related Tickets",
+      "type": "array"
+    },
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "Contract schema version this object was produced with.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "severity": {
+      "$ref": "#/$defs/Criticality"
+    },
+    "status": {
+      "$ref": "#/$defs/TicketStatus",
+      "default": "OPEN"
+    },
+    "ticket_id": {
+      "title": "Ticket Id",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "updated_at": {
+      "format": "date-time",
+      "title": "Updated At",
+      "type": "string"
+    },
+    "workflow_version": {
+      "default": "1.0.0",
+      "title": "Workflow Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "ticket_id",
+    "created_at",
+    "updated_at",
+    "project_id",
+    "agent_id",
+    "agent_version",
+    "title",
+    "description",
+    "expected",
+    "observed",
+    "severity",
+    "impact"
+  ],
+  "title": "Ticket",
+  "type": "object"
+}

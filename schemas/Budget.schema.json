@@ -1,0 +1,121 @@
+{
+  "$defs": {
+    "BudgetScope": {
+      "enum": [
+        "organization",
+        "project",
+        "agent",
+        "campaign",
+        "day",
+        "month",
+        "evaluation_type"
+      ],
+      "title": "BudgetScope",
+      "type": "string"
+    },
+    "BudgetThresholds": {
+      "additionalProperties": false,
+      "description": "Fractions of the cap (0-1). info < warning < 1.0 (blocking).",
+      "properties": {
+        "info": {
+          "default": 0.5,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Info",
+          "type": "number"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "warning": {
+          "default": 0.8,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Warning",
+          "type": "number"
+        }
+      },
+      "title": "BudgetThresholds",
+      "type": "object"
+    }
+  },
+  "$id": "https://graines.ai/evalkit/schemas/Budget.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "budget_id": {
+      "title": "Budget Id",
+      "type": "string"
+    },
+    "currency": {
+      "default": "USD",
+      "title": "Currency",
+      "type": "string"
+    },
+    "inherits_from": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Parent budget_id.",
+      "title": "Inherits From"
+    },
+    "max_cost": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Max Cost"
+    },
+    "max_tokens": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Max Tokens"
+    },
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "Contract schema version this object was produced with.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/BudgetScope"
+    },
+    "scope_ref": {
+      "description": "Id of the scoped entity (project_id, campaign_id, ...).",
+      "title": "Scope Ref",
+      "type": "string"
+    },
+    "thresholds": {
+      "$ref": "#/$defs/BudgetThresholds"
+    }
+  },
+  "required": [
+    "budget_id",
+    "scope",
+    "scope_ref"
+  ],
+  "title": "Budget",
+  "type": "object"
+}

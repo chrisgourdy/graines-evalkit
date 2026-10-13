@@ -1,0 +1,558 @@
+{
+  "$defs": {
+    "ControlState": {
+      "description": "Technical state of a check. A COMPLETED control may still conclude FAIL.",
+      "enum": [
+        "COMPLETED",
+        "ERRORED",
+        "SKIPPED",
+        "TIMEOUT"
+      ],
+      "title": "ControlState",
+      "type": "string"
+    },
+    "Cost": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Amount"
+        },
+        "breakdown": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "description": "Per-category amounts (input, output, cache, ...).",
+          "title": "Breakdown",
+          "type": "object"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Currency"
+        },
+        "fx": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FxRate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "price_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "PriceEntry used, for traceability.",
+          "title": "Price Id"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/CostStatus"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "Cost",
+      "type": "object"
+    },
+    "CostStatus": {
+      "enum": [
+        "MEASURED",
+        "ESTIMATED",
+        "UNKNOWN"
+      ],
+      "title": "CostStatus",
+      "type": "string"
+    },
+    "Dimension": {
+      "description": "Evaluated dimensions (docs/METRICS.md defines each, its method and its limits).",
+      "enum": [
+        "accuracy",
+        "compliance",
+        "completeness",
+        "consistency",
+        "format",
+        "constraints",
+        "decision_reliability",
+        "tool_use",
+        "stability",
+        "robustness",
+        "security",
+        "latency",
+        "tokens",
+        "cost",
+        "business"
+      ],
+      "title": "Dimension",
+      "type": "string"
+    },
+    "EvalStatus": {
+      "description": "Conclusion of an evaluation. Distinct from :class:`ControlState` (did the check run?).",
+      "enum": [
+        "PASS",
+        "WARNING",
+        "FAIL",
+        "INCONCLUSIVE",
+        "NOT_EVALUATED"
+      ],
+      "title": "EvalStatus",
+      "type": "string"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "description": "e.g. 'diff', 'schema_error', 'reference', 'judge_rationale'.",
+          "title": "Kind",
+          "type": "string"
+        },
+        "ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Artifact reference for the full evidence.",
+          "title": "Ref"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "summary"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "FxRate": {
+      "additionalProperties": false,
+      "properties": {
+        "as_of": {
+          "format": "date",
+          "title": "As Of",
+          "type": "string"
+        },
+        "base": {
+          "title": "Base",
+          "type": "string"
+        },
+        "quote": {
+          "title": "Quote",
+          "type": "string"
+        },
+        "rate": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Rate"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "base",
+        "quote",
+        "rate",
+        "source",
+        "as_of"
+      ],
+      "title": "FxRate",
+      "type": "object"
+    },
+    "MeasurementKind": {
+      "description": "Nature of a measured value. Never collapse UNAVAILABLE into 0 or PASS.",
+      "enum": [
+        "OBJECTIVE",
+        "STATISTICAL",
+        "LLM_JUDGED",
+        "HUMAN",
+        "UNAVAILABLE"
+      ],
+      "title": "MeasurementKind",
+      "type": "string"
+    },
+    "TokenUsage": {
+      "additionalProperties": false,
+      "properties": {
+        "cache_creation_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Cache-write tokens. May be a subset of input_tokens.",
+          "title": "Cache Creation Tokens"
+        },
+        "cached_input_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Cache-read input tokens. May be a subset of input_tokens.",
+          "title": "Cached Input Tokens"
+        },
+        "estimation_granularity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Granularity of the estimate, e.g. 'call', 'step', 'run'.",
+          "title": "Estimation Granularity"
+        },
+        "estimation_method": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Required when source=ESTIMATED (e.g. 'tiktoken:cl100k_base').",
+          "title": "Estimation Method"
+        },
+        "input_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Input Tokens"
+        },
+        "modality_tokens": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "description": "Tokens attributed to special modalities (e.g. 'image', 'audio').",
+          "title": "Modality Tokens",
+          "type": "object"
+        },
+        "model": {
+          "description": "Model identifier as billed by the provider.",
+          "title": "Model",
+          "type": "string"
+        },
+        "native_units": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Provider-native billing units for non-token items (e.g. 'images': 2).",
+          "title": "Native Units",
+          "type": "object"
+        },
+        "output_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Tokens"
+        },
+        "provider": {
+          "description": "Provider identifier, e.g. 'anthropic', 'openai', 'sim'.",
+          "title": "Provider",
+          "type": "string"
+        },
+        "raw": {
+          "additionalProperties": true,
+          "description": "Provider raw usage payload for audit (secrets redacted).",
+          "title": "Raw",
+          "type": "object"
+        },
+        "reasoning_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Reasoning/thinking tokens. May be a subset of output_tokens.",
+          "title": "Reasoning Tokens"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/UsageSource"
+        },
+        "subsets": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Declares inclusion relations, e.g. {'cached_input_tokens': 'input_tokens'} means cached_input is already counted inside input. Drives double-count-safe aggregation.",
+          "title": "Subsets",
+          "type": "object"
+        },
+        "total_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total Tokens"
+        }
+      },
+      "required": [
+        "provider",
+        "model",
+        "source"
+      ],
+      "title": "TokenUsage",
+      "type": "object"
+    },
+    "UsageSource": {
+      "description": "Origin of a token-usage figure (see docs/TOKEN_ACCOUNTING.md).",
+      "enum": [
+        "REPORTED",
+        "ESTIMATED",
+        "UNKNOWN"
+      ],
+      "title": "UsageSource",
+      "type": "string"
+    }
+  },
+  "$id": "https://graines.ai/evalkit/schemas/EvaluationResult.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "blocking": {
+      "default": false,
+      "title": "Blocking",
+      "type": "boolean"
+    },
+    "control_state": {
+      "$ref": "#/$defs/ControlState"
+    },
+    "dimension": {
+      "$ref": "#/$defs/Dimension"
+    },
+    "evaluated_at": {
+      "format": "date-time",
+      "title": "Evaluated At",
+      "type": "string"
+    },
+    "evaluator_cost": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Cost"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "evaluator_id": {
+      "title": "Evaluator Id",
+      "type": "string"
+    },
+    "evaluator_usage": {
+      "description": "LLM usage of the evaluator itself (kept separate).",
+      "items": {
+        "$ref": "#/$defs/TokenUsage"
+      },
+      "title": "Evaluator Usage",
+      "type": "array"
+    },
+    "evaluator_version": {
+      "title": "Evaluator Version",
+      "type": "string"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "measurement": {
+      "$ref": "#/$defs/MeasurementKind"
+    },
+    "message": {
+      "default": "",
+      "title": "Message",
+      "type": "string"
+    },
+    "result_id": {
+      "title": "Result Id",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "Contract schema version this object was produced with.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "score": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Normalised score if any.",
+      "title": "Score"
+    },
+    "status": {
+      "$ref": "#/$defs/EvalStatus"
+    },
+    "unit": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Unit"
+    },
+    "value": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Raw measured value (latency ms, ...).",
+      "title": "Value"
+    }
+  },
+  "required": [
+    "result_id",
+    "run_id",
+    "evaluator_id",
+    "evaluator_version",
+    "dimension",
+    "control_state",
+    "status",
+    "measurement",
+    "evaluated_at"
+  ],
+  "title": "EvaluationResult",
+  "type": "object"
+}

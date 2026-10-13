@@ -1,0 +1,417 @@
+{
+  "$defs": {
+    "Budget": {
+      "additionalProperties": false,
+      "properties": {
+        "budget_id": {
+          "title": "Budget Id",
+          "type": "string"
+        },
+        "currency": {
+          "default": "USD",
+          "title": "Currency",
+          "type": "string"
+        },
+        "inherits_from": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Parent budget_id.",
+          "title": "Inherits From"
+        },
+        "max_cost": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Cost"
+        },
+        "max_tokens": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Tokens"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/BudgetScope"
+        },
+        "scope_ref": {
+          "description": "Id of the scoped entity (project_id, campaign_id, ...).",
+          "title": "Scope Ref",
+          "type": "string"
+        },
+        "thresholds": {
+          "$ref": "#/$defs/BudgetThresholds"
+        }
+      },
+      "required": [
+        "budget_id",
+        "scope",
+        "scope_ref"
+      ],
+      "title": "Budget",
+      "type": "object"
+    },
+    "BudgetScope": {
+      "enum": [
+        "organization",
+        "project",
+        "agent",
+        "campaign",
+        "day",
+        "month",
+        "evaluation_type"
+      ],
+      "title": "BudgetScope",
+      "type": "string"
+    },
+    "BudgetThresholds": {
+      "additionalProperties": false,
+      "description": "Fractions of the cap (0-1). info < warning < 1.0 (blocking).",
+      "properties": {
+        "info": {
+          "default": 0.5,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Info",
+          "type": "number"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "warning": {
+          "default": 0.8,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Warning",
+          "type": "number"
+        }
+      },
+      "title": "BudgetThresholds",
+      "type": "object"
+    },
+    "CampaignPlan": {
+      "additionalProperties": false,
+      "description": "Pre-execution forecast (COST_CONTROLLER). Uncertainty is explicit, never hidden.",
+      "properties": {
+        "basis": {
+          "description": "'historical' | 'conservative_default' | 'mixed'.",
+          "title": "Basis",
+          "type": "string"
+        },
+        "currency": {
+          "default": "USD",
+          "title": "Currency",
+          "type": "string"
+        },
+        "expected_agent_cost": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Agent Cost"
+        },
+        "expected_evaluator_cost": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Evaluator Cost"
+        },
+        "expected_external_cost": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected External Cost"
+        },
+        "expected_retry_cost": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Retry Cost"
+        },
+        "expected_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Tokens"
+        },
+        "planned_runs": {
+          "minimum": 0,
+          "title": "Planned Runs",
+          "type": "integer"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "description": "Contract schema version this object was produced with.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "uncertainty": {
+          "description": "How the forecast was built and how uncertain it is.",
+          "title": "Uncertainty",
+          "type": "string"
+        }
+      },
+      "required": [
+        "planned_runs",
+        "uncertainty",
+        "basis"
+      ],
+      "title": "CampaignPlan",
+      "type": "object"
+    },
+    "CampaignStatus": {
+      "enum": [
+        "PLANNED",
+        "DRY_RUN",
+        "RUNNING",
+        "SUSPENDED",
+        "COMPLETED",
+        "STOPPED_BUDGET",
+        "STOPPED_ELIMINATORY",
+        "FAILED"
+      ],
+      "title": "CampaignStatus",
+      "type": "string"
+    },
+    "Profile": {
+      "enum": [
+        "QUICK",
+        "STANDARD",
+        "DEEP",
+        "EXTENDED"
+      ],
+      "title": "Profile",
+      "type": "string"
+    }
+  },
+  "$id": "https://graines.ai/evalkit/schemas/Campaign.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "agent_version": {
+      "title": "Agent Version",
+      "type": "string"
+    },
+    "baseline_campaign_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Baseline Campaign Id"
+    },
+    "budget": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Budget"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "campaign_id": {
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "dry_run": {
+      "default": false,
+      "title": "Dry Run",
+      "type": "boolean"
+    },
+    "ended_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ended At"
+    },
+    "evalkit_version": {
+      "title": "Evalkit Version",
+      "type": "string"
+    },
+    "plan": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CampaignPlan"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "price_snapshot_ids": {
+      "description": "PriceEntry ids frozen for this campaign.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Price Snapshot Ids",
+      "type": "array"
+    },
+    "profile": {
+      "$ref": "#/$defs/Profile"
+    },
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
+    },
+    "repetitions_override": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Repetitions Override"
+    },
+    "scenario_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Scenario Ids",
+      "type": "array"
+    },
+    "schema_version": {
+      "default": "1.0.0",
+      "description": "Contract schema version this object was produced with.",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "seed": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Seed"
+    },
+    "started_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Started At"
+    },
+    "status": {
+      "$ref": "#/$defs/CampaignStatus",
+      "default": "PLANNED"
+    },
+    "stop_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Stop Reason"
+    }
+  },
+  "required": [
+    "campaign_id",
+    "project_id",
+    "agent_id",
+    "agent_version",
+    "profile",
+    "scenario_ids",
+    "created_at",
+    "evalkit_version"
+  ],
+  "title": "Campaign",
+  "type": "object"
+}

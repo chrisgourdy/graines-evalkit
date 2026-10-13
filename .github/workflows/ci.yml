@@ -1,0 +1,24 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv venv .venv --python ${{ matrix.python }}
+      - run: uv pip install -e ".[api]" --group dev
+      - run: .venv/bin/ruff check src tests
+      - run: .venv/bin/ruff format --check src tests
+      - run: .venv/bin/mypy
+      - run: .venv/bin/pytest
+      - run: .venv/bin/pip-audit --skip-editable || true  # advisory until Phase 5 pins
+  # docker (amd64/arm64) and npm jobs are added in Phase 5 (docs/DISTRIBUTION.md)
