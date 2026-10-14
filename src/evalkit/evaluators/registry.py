@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from evalkit.evaluators.deterministic import (
     ExactMatch,
+    InjectionGuard,
     JsonSchemaCheck,
     MaxLength,
     NormalizedMatch,
@@ -27,6 +28,7 @@ class DefaultEvaluatorRegistry:
             NumericTolerance,
             MaxLength,
             TraceRules,
+            InjectionGuard,
         ):
             self.register(cls())
 

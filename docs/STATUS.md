@@ -1,6 +1,6 @@
 # Status — implemented vs verified
 
-Updated: 2026-10-14 (end of Phase 7).
+Updated: 2026-10-14 (end of Phase 8).
 
 Legend: **IV** implemented & verified (automated test exists and passes) · **IP** implemented,
 partially verified · **SIM** validated only with simulated agents · **NT** implemented, not
@@ -17,7 +17,7 @@ tested · **PL** planned · **BL** blocked.
 | Project + scenario loader | IV | `tests/test_orchestrator.py` |
 | Adapters `sim.*`, `python.callable` | IV / SIM | `tests/test_adapters_evaluators.py` |
 | Adapter `http.json` | IV (mock transport) | `tests/test_http_adapter.py` |
-| Eight deterministic evaluators | IV | `tests/test_adapters_evaluators.py` |
+| Nine deterministic evaluators (incl. `injection_guard`) | IV | `tests/test_adapters_evaluators.py` |
 | Orchestrator: profiles, DRY_RUN, seeds, eliminatory stop, bounded workers, reservations | IV / SIM | `tests/test_orchestrator.py`, `tests/test_cost_controller.py` |
 | Statistical engine | IV | `tests/test_stats.py` |
 | TOKEN_METER | IV | `tests/test_token_meter.py` |
@@ -30,7 +30,7 @@ tested · **PL** planned · **BL** blocked.
 | HTTP API `/v1` (auth, launch/poll, results, scorecard, report, events, usage/event push) | IV / SIM | `tests/test_api.py` (TestClient), `tests/test_compat.py` (live uvicorn) |
 | TypeScript SDK `@graines/evalkit` | IV | `sdk/typescript/test` (fake fetch) + SDK leg of `tests/test_compat.py` (real server, node) |
 | CLI ↔ API ↔ SDK compatibility | IV / SIM | `tests/test_compat.py` — identical report shape across the three paths |
-| Wheel build + clean-venv install + demo run | IV (manual + CI job) | executed in Phase 5 on Python 3.13; CI job `wheel` |
+| Wheel build + clean-venv install + demo run | IV | `tests/test_distribution.py` (integration_local); CI job `wheel` |
 | Docker image (Dockerfile, entrypoint, compose) | IP / BL | statically validated (compose parses, non-root, `sh -n`); never built — no daemon here; CI job `docker` runs once the repo is linked (EK-0030) |
 | CI pipeline (python matrix, wheel, sdk, docker, sbom) | NT | YAML valid; never executed (no remote yet) |
 | SBOM (CycloneDX 1.6) | IV (manual) | `scripts/sbom.sh` produced 93 components locally |
@@ -47,5 +47,7 @@ tested · **PL** planned · **BL** blocked.
 | Campaign resume after interruption (stuck runs cancelled, reservations released, attempts re-planned) | IV / SIM | `tests/test_autonomy.py` (scenario 26) |
 | Scheduler: YAML plan, durable state, due/interval, last_good baseline, campaign cost cap, unattended retrofit → apply → confirm → rollback, guards (per-day, cool-down, consecutive failures → pause + human resume), exclusive lock, auto-resume | IV / SIM | `tests/test_autonomy.py`; image `scheduler` mode wired (never built, EK-0030) |
 | Scheduler on a real cron/systemd/container | NT | wiring exists; no such environment here |
-| Acceptance report (30 scenarios) | PL | Phase 8 — covering tests now exist for 1, 2, 5–22, 24–26, 28, 29; 23 blocked on CI; 27 (injection) and 3/4 (real providers) to be assessed |
+| Prompt-injection protection (structural + `injection_guard` detector) | IV / SIM | `tests/test_acceptance.py` (scenario 27) |
+| Acceptance report generated from JUnit evidence (`evalkit acceptance run`) | IV | `docs/ACCEPTANCE_REPORT.md`: 29 PASS, 1 BLOCKED (Docker), 0 FAIL; `tests/test_acceptance.py` (scenario 30) |
+| Release checklist V1 | done except human-only items | `docs/RELEASE_CHECKLIST.md` |
 | External publication (PyPI, npm, registry, GitHub) | not done | requires explicit authorisation (level 4) |

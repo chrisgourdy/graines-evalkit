@@ -842,3 +842,53 @@ def schedule_resume_job(
 
     st = Scheduler(_repo(data_dir), load_plan(plan)).resume_job(job, note=note)
     typer.echo(f"{st.job_name}: active")
+
+
+# --- Phase 8: acceptance -------------------------------------------------------------------
+
+acceptance_app = typer.Typer(no_args_is_help=True, help="The 30 acceptance scenarios.")
+app.add_typer(acceptance_app, name="acceptance")
+
+
+@acceptance_app.command("list")
+def acceptance_list() -> None:
+    """List scenarios, their mode and covering tests (no execution)."""
+    from evalkit.acceptance import SCENARIOS, Mode
+
+    for s in SCENARIOS:
+        mode = "BLOCKED" if s.mode is Mode.CI else s.mode.value
+        typer.echo(f"{s.number:2} {s.title:40} {mode:12} {len(s.tests)} test(s)")
+        for t in s.tests:
+            typer.echo(f"     {t}")
+        if s.blocked_reason:
+            typer.echo(f"     blocked: {s.blocked_reason}")
+
+
+@acceptance_app.command("run")
+def acceptance_run(
+    out: Path = typer.Option(Path("docs/ACCEPTANCE_REPORT.md"), help="Markdown report path."),
+    junit: Path | None = typer.Option(None, help="JUnit XML path (default data/acceptance/)."),
+    root: Path = typer.Option(Path(), help="Repository root (contains tests/)."),
+    pytest_arg: list[str] = typer.Option([], "--pytest-arg", help="Extra pytest argument."),
+) -> None:
+    """Execute the whole test suite with JUnit evidence and write the acceptance report."""
+    from evalkit.acceptance import run_acceptance
+
+    if not (root / "tests").is_dir():
+        typer.echo(
+            f"REFUSED: {root} has no tests/ directory (run from a source checkout)", err=True
+        )
+        raise typer.Exit(code=2)
+    report = run_acceptance(root.resolve(), out=out, junit=junit, pytest_args=list(pytest_arg))
+    c = report.counts
+    typer.echo(
+        f"tests: {report.passed} passed, {report.failed} failed, {report.errors} errors, "
+        f"{report.skipped} skipped — scenarios: {c['PASS']} PASS, {c['FAIL']} FAIL, "
+        f"{c['BLOCKED']} BLOCKED, {c['NOT_RUN']} NOT_RUN"
+    )
+    for r in report.results:
+        if r.result != "PASS":
+            typer.echo(f"  {r.scenario.number:2} {r.scenario.title}: {r.result} — {r.detail}")
+    typer.echo(f"report: {out}")
+    if not report.accepted:
+        raise typer.Exit(code=1)

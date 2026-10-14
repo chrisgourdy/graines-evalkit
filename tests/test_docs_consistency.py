@@ -38,6 +38,8 @@ MANDATORY_FILES = [
     "docs/ACCEPTANCE_SCENARIOS.md",
     "docs/SPEC_MASTER_PROMPT_V2.1.md",
     "docs/TUTORIEL.md",
+    "docs/ACCEPTANCE_REPORT.md",
+    "docs/RELEASE_CHECKLIST.md",
 ]
 
 MANDATORY_SECTIONS = [

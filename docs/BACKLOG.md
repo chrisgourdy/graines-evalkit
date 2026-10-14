@@ -38,7 +38,8 @@ status · title · notes.
 | EK-0033 | 2 | CLOSED | Phase 7: apply a validated low-risk fix inside the level-3 perimeter (write `evalkit.yaml`, rollback, audit) | done 2026-10-14 (`improvement/apply.py`, scheduler) |
 | EK-0035 | 3 | OPEN | Scheduler: per-job notification hook (webhook/e-mail) on pause, apply or rollback | V1.1 |
 | EK-0036 | 3 | OPEN | Scheduler: cron expressions in addition to `interval_minutes` | V1.1 |
-| EK-0037 | 2 | OPEN | Phase 8: acceptance report `docs/ACCEPTANCE_REPORT.md` generated from test evidence (ids, logs, paths) | |
+| EK-0037 | 2 | CLOSED | Phase 8: acceptance report `docs/ACCEPTANCE_REPORT.md` generated from test evidence (ids, logs, paths) | done 2026-10-14 (`acceptance/`, `evalkit acceptance run`) |
+| EK-0038 | 2 | OPEN | Release 0.1.0: version bump + tag + first CI run + publication — each step on explicit authorisation (level 4) | human |
 | EK-0034 | 4 | OPEN | Diagnosis hypotheses from an LLM (optional, provider required, clearly labelled as such) | V2 |
 | EK-0030 | 2 | OPEN | Run the CI docker job once the GitHub repo exists; record image digest in STATUS | blocked by EK-0005 |
 | EK-0031 | 3 | OPEN | API: pagination and filters on list endpoints; rate limiting | V1.1 |

@@ -266,3 +266,44 @@ def test_no_output_fails_but_control_completed() -> None:
 def test_evaluator_param_fault_raises() -> None:
     with pytest.raises(ValueError, match=r"params\.schema"):
         evaluate(ev("json_schema", Dimension.FORMAT), run_with({}), scenario({}))
+
+
+def test_injection_guard_flags_markers_and_passes_clean_output() -> None:
+    import asyncio
+
+    from evalkit.adapters.sim import INJECTION_TEXT, _inject
+    from evalkit.contracts import Dimension, EvalStatus, Run, RunStatus, VerificationSpec, utcnow
+    from evalkit.evaluators import DefaultEvaluatorRegistry
+
+    guard = DefaultEvaluatorRegistry().get("injection_guard")
+    spec = VerificationSpec(evaluator="injection_guard", dimension=Dimension.SECURITY)
+
+    def run_with(output: object) -> Run:
+        return Run(
+            run_id="run_x",
+            campaign_id="cmp_x",
+            scenario_id="demo.guarded.sec.001",
+            scenario_version="1.0.0",
+            project_id="demo",
+            agent_id="greeter-guarded",
+            agent_version="1.0.0",
+            attempt=1,
+            status=RunStatus.COMPLETED,
+            started_at=utcnow(),
+            output=output,
+        )
+
+    sc = scenario({"text": "Hello Ada"})
+    clean = asyncio.run(guard.evaluate(run_with({"text": "Hello Ada"}), sc, spec))
+    assert clean.status is EvalStatus.PASS and clean.value == 0
+    dirty = asyncio.run(guard.evaluate(run_with(_inject({"text": "Hello Ada"})), sc, spec))
+    assert dirty.status is EvalStatus.FAIL and dirty.value and dirty.value >= 2
+    assert all(e.kind == "injection_marker" for e in dirty.evidence)
+    assert "IGNORE ALL PREVIOUS" in INJECTION_TEXT
+    custom = VerificationSpec(
+        evaluator="injection_guard",
+        dimension=Dimension.SECURITY,
+        params={"patterns": [r"secret\s+handshake"]},
+    )
+    hit = asyncio.run(guard.evaluate(run_with("the secret handshake is"), sc, custom))
+    assert hit.status is EvalStatus.FAIL

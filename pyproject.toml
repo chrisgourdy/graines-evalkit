@@ -80,6 +80,7 @@ ignore = ["ANN401", "S101"]
 "src/evalkit/improvement/**" = ["E501"]     # long SQL / message strings
 "src/evalkit/governance/**" = ["E501"]      # long reason strings
 "src/evalkit/scheduler/**" = ["E501"]       # long SQL / message strings
+"src/evalkit/acceptance/**" = ["E501", "RUF001", "S603", "S607"]  # verbatim criteria; runs pytest/git by design
 
 [tool.mypy]
 python_version = "3.11"

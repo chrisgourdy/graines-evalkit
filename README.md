@@ -14,9 +14,9 @@ One canonical Python engine, three distributions (PyPI `graines-evalkit`, Docker
 
 ## Status
 
-Pre-alpha — Phases 1 to 7 complete (architecture, MVP cycle, statistics + metering + cost
-control, scoring + visual reports, distribution, continuous improvement, autonomy: scheduler,
-resume, backup/restore, controlled apply). Phase 8 (acceptance report) is next.
+Pre-alpha, V1 candidate — Phases 1 to 8 complete. Acceptance: 29 of 30 scenarios PASS on
+simulated agents, 1 BLOCKED (Docker, CI only) — `docs/ACCEPTANCE_REPORT.md`. Release steps
+that publish anything wait for explicit authorisation (`docs/RELEASE_CHECKLIST.md`).
 See [docs/ROADMAP.md](docs/ROADMAP.md) and [CLAUDE.md](CLAUDE.md) for the current state.
 Nothing in this repository is to be considered operational until the acceptance report
 (`docs/ACCEPTANCE_REPORT.md`) says so, with evidence.

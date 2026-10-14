@@ -5,6 +5,13 @@ All notable changes to this project are documented here (Keep a Changelog, semve
 ## [Unreleased]
 
 ### Added
+- Phase 8 (acceptance): `acceptance/` package — registry of the 30 scenarios (criteria
+  verbatim from `docs/ACCEPTANCE_SCENARIOS.md`, covering tests, modes simulated / whole
+  suite / ci only), JUnit parsing, PASS / FAIL / BLOCKED / NOT_RUN decision, Markdown
+  report; CLI `acceptance list|run`; `injection_guard` evaluator and `sim.deterministic`
+  behaviour `injection` with demo agent `greeter-guarded` (scenario 27); wheel-install test
+  (scenario 22, integration_local); `docs/ACCEPTANCE_REPORT.md` + `docs/evidence/`,
+  `docs/RELEASE_CHECKLIST.md`.
 - Phase 7 (autonomy): `CampaignRunner.resume` + CLI `campaign resume` (stuck runs kept as
   CANCELLED without error, reservations released, remaining attempts re-planned, audited);
   `SQLiteRepository.backup/restore` + CLI `db backup|restore` (online SQLite backup API,

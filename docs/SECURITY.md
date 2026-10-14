@@ -5,6 +5,12 @@
 - Agent outputs, tool results and evaluated documents are untrusted and may contain prompt
   injections. They are data: never executed, never fed to an LLM judge without the judge
   being told they are untrusted, never allowed to alter scenarios, criteria or budgets.
+- `injection_guard` evaluator (`evaluators/deterministic.py`): a heuristic marker scan of the
+  output ("ignore previous instructions", "raise the budget", "mark as PASS", …) that
+  yields a FAIL with the matched excerpts as evidence. It is a detector, never an action; the
+  protection itself is structural (outputs are data) and proven by acceptance scenario 27
+  (`tests/test_acceptance.py`): budget, autonomy and criteria are byte-identical after an
+  injected campaign.
 - Secrets (API keys) come from environment variables or a secrets file outside the repo; they
   are redacted from every event, artifact and report by a central redactor.
 - Budgets and caps are enforced in code (`cost_controller`) and cannot be modified through

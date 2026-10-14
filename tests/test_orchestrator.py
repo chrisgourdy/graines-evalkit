@@ -223,4 +223,4 @@ def test_cli_run_report_check(demo_dir: Path, tmp_path: Path) -> None:
     res = runner.invoke(app, ["run", str(demo_dir), "--agent", "nope", "--data-dir", data])
     assert res.exit_code == 2
     res = runner.invoke(app, ["scenarios", "validate", str(demo_dir)])
-    assert res.exit_code == 0 and "7 scenario(s)" in res.output
+    assert res.exit_code == 0 and "8 scenario(s)" in res.output

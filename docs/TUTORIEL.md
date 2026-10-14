@@ -1,7 +1,7 @@
 # EVALKIT — Tutoriel d'utilisation
 
 Ce tutoriel est la référence d'usage pour Christophe. Il décrit ce qui fonctionne **à la fin de
-la Phase 7** (voir `docs/STATUS.md` pour le détail vérifié / non vérifié). Tout ce qui est
+la Phase 8** (voir `docs/STATUS.md` pour le détail vérifié / non vérifié). Tout ce qui est
 décrit ici tourne sans aucun fournisseur LLM : les agents de démonstration sont simulés.
 Un agent simulé n'est jamais une validation de production.
 
@@ -112,7 +112,8 @@ provenance: { author: cgourdy@graines.ai, created_at: 2026-10-14T00:00:00Z, orig
 ```
 
 Évaluateurs disponibles : `exact_match`, `normalized_match`, `json_schema`, `regex`,
-`required_keys`, `numeric_tolerance`, `max_length`, `trace_rules`. `blocking: true` rend la
+`required_keys`, `numeric_tolerance`, `max_length`, `trace_rules`, `injection_guard` (dimension
+`security` : FAIL si la sortie contient des marqueurs d'injection d'instructions). `blocking: true` rend la
 vérification éliminatoire : un FAIL force le statut global à FAIL, quel que soit le reste.
 Le paramètre `field` accepte un chemin pointé (`answer.delay_days`).
 
@@ -392,10 +393,31 @@ chaîne d'audit). La restauration refuse une base corrompue ou une chaîne cass�
 répertoire de données, rejoue les migrations et ajoute un événement `db.restore`. Arrête le
 planificateur et l'API avant de restaurer.
 
-## 12. Ce qui n'existe pas encore
+## 12. Recette : les 30 scénarios et leur rapport
 
-Rapport de recette des 30 scénarios (Phase 8), exécution réelle du planificateur sur un
-cron ou un conteneur (câblage présent, pas d'environnement ici), expressions cron et
+```bash
+evalkit acceptance list                         # scénarios, mode, tests couvrants
+evalkit acceptance run                          # exécute toute la suite, écrit docs/ACCEPTANCE_REPORT.md
+evalkit acceptance run --junit docs/evidence/acceptance-junit.xml
+```
+
+Le rapport n'est jamais écrit à la main : il est produit depuis le JUnit d'une vraie
+exécution. Un scénario est PASS seulement si **tous** ses tests couvrants ont passé dans cette
+exécution, BLOCKED quand l'environnement ne permet pas de l'exécuter (la raison est écrite :
+aujourd'hui le seul bloqué est l'exécution Docker, faute de daemon ici), FAIL sinon, et NOT_RUN
+si un test couvrant manque — jamais PASS par défaut. Le scénario 28 (suite complète hors
+ligne) est jugé sur l'exécution elle-même : zéro échec et aucune clé fournisseur dans
+l'environnement. Chaque ligne cite les identifiants de tests, leur résultat et leur durée ;
+l'en-tête donne la version, le commit (suffixé `+dirty` si l'arbre de travail diffère), Python
+et la plateforme. `tests/test_acceptance.py` vérifie que le registre des scénarios est
+identique, mot pour mot, aux critères de `docs/ACCEPTANCE_SCENARIOS.md` et que chaque test
+cité existe. La checklist de release est dans `docs/RELEASE_CHECKLIST.md` : rien n'est publié
+sans ton feu vert explicite, poste par poste.
+
+## 13. Ce qui n'existe pas encore
+
+Exécution réelle du planificateur sur un cron ou un conteneur et image Docker construite
+(câblage présent, CI jamais exécutée faute de dépôt distant), expressions cron et
 notifications (EK-0035/0036), hypothèses de diagnostic par LLM (EK-0034), adaptateurs
-Anthropic/OpenAI natifs, pont OpenTelemetry, tarifs réels, image Docker construite,
-publication PyPI/npm. `docs/STATUS.md` fait foi, ligne par ligne.
+Anthropic/OpenAI natifs, pont OpenTelemetry, tarifs réels, publication PyPI/npm.
+`docs/STATUS.md` fait foi, ligne par ligne.
