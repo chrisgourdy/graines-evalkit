@@ -1,0 +1,23 @@
+# Example scheduler plan (evalkit schedule run scenarios/examples/schedule.example.yaml --once).
+# Paths are relative to this file. Simulated agents only: never a production validation.
+plan_id: demo-nightly
+jobs:
+  - name: greeter-standard
+    project_dir: demo
+    agent: greeter
+    profile: standard
+    interval_minutes: 1440          # once a day
+    baseline: last_good             # the scheduler tracks the last healthy campaign
+    retrofit: true                  # on incident: run the retrofit cycle (isolated, no HOLDOUT)
+    apply_when_allowed: false       # true needs autonomy.max_level: 3 + apply_perimeter in the project
+    confirm_after_apply: true       # DEEP confirmation after an apply; rollback when it fails
+    max_retrofits_per_day: 1
+    cooldown_minutes_after_retrofit: 60
+    max_consecutive_failures: 3     # then the job pauses until `evalkit schedule resume-job`
+  - name: flaky-quick
+    project_dir: demo
+    agent: greeter-flaky
+    profile: quick
+    seed: 42
+    interval_minutes: 360
+    max_cost_per_cycle: 1.0         # campaign-scope budget cap (cost-bearing adapters)

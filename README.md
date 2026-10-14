@@ -14,9 +14,9 @@ One canonical Python engine, three distributions (PyPI `graines-evalkit`, Docker
 
 ## Status
 
-Pre-alpha — Phases 1 to 6 complete (architecture, MVP cycle, statistics + metering + cost
-control, scoring + visual reports, distribution, continuous improvement: tickets, retrofit
-cycle, learnings, self-check). Phase 7 (autonomy: scheduler, resume) is next.
+Pre-alpha — Phases 1 to 7 complete (architecture, MVP cycle, statistics + metering + cost
+control, scoring + visual reports, distribution, continuous improvement, autonomy: scheduler,
+resume, backup/restore, controlled apply). Phase 8 (acceptance report) is next.
 See [docs/ROADMAP.md](docs/ROADMAP.md) and [CLAUDE.md](CLAUDE.md) for the current state.
 Nothing in this repository is to be considered operational until the acceptance report
 (`docs/ACCEPTANCE_REPORT.md`) says so, with evidence.

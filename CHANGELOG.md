@@ -5,6 +5,17 @@ All notable changes to this project are documented here (Keep a Changelog, semve
 ## [Unreleased]
 
 ### Added
+- Phase 7 (autonomy): `CampaignRunner.resume` + CLI `campaign resume` (stuck runs kept as
+  CANCELLED without error, reservations released, remaining attempts re-planned, audited);
+  `SQLiteRepository.backup/restore` + CLI `db backup|restore` (online SQLite backup API,
+  manifest, integrity and chain checks, refusals); controlled apply of an `APPLY_ALLOWED`
+  fix with backups and rollback (`improvement/apply.py`, CLI `retrofit apply|rollback`,
+  policy re-checked at apply time, EK-0033); scheduler (`scheduler/`: YAML plan, migration
+  0004 `schedule_state`, due/interval, `last_good` baseline tracking, campaign cost cap,
+  unattended retrofit → apply → DEEP confirm → rollback, guards: retrofits per day,
+  cool-down, consecutive failures → pause + `human.intervention`, exclusive lock, automatic
+  resume of an interrupted campaign; CLI `schedule run [--once]|status|resume-job`; Docker
+  `scheduler` mode wired); example plan `scenarios/examples/schedule.example.yaml`; 15 tests.
 - Phase 6 (continuous improvement): migration 0003 (`tickets.fingerprint/agent_id`,
   `learnings`, `experiments`); `governance.ProjectPolicyEngine` + `autonomy:` block in
   `evalkit.yaml` (levels enforced in code, `ALWAYS_HUMAN` kinds, `agent:*` actors never above

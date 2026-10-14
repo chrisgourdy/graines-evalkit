@@ -1,6 +1,6 @@
 # Status — implemented vs verified
 
-Updated: 2026-10-14 (end of Phase 6).
+Updated: 2026-10-14 (end of Phase 7).
 
 Legend: **IV** implemented & verified (automated test exists and passes) · **IP** implemented,
 partially verified · **SIM** validated only with simulated agents · **NT** implemented, not
@@ -10,7 +10,8 @@ tested · **PL** planned · **BL** blocked.
 |---|---|---|
 | Public contracts, JSON Schema export, double-count-safe usage | IV | `tests/test_contracts.py` |
 | Documentation set + consistency test | IV | `tests/test_docs_consistency.py` |
-| SQLite storage: migrations (0001, 0002, 0003), transactions, artifacts | IV | `tests/test_storage.py` |
+| SQLite storage: migrations (0001–0004), transactions, artifacts | IV | `tests/test_storage.py` |
+| Backup (online, manifest) / restore (integrity + chain checks, refusals) | IV | `tests/test_autonomy.py` |
 | Audit trail append-only, hash chain, corrections, JSONL export | IV | `tests/test_storage.py` |
 | Secret redaction in events | IP | key-name based only |
 | Project + scenario loader | IV | `tests/test_orchestrator.py` |
@@ -41,8 +42,10 @@ tested · **PL** planned · **BL** blocked.
 | Learning confirmation on DEEP campaign with HOLDOUT (`retrofit confirm`) | IV / SIM | `tests/test_improvement.py` |
 | Learnings KB with provenance and status | IV | `tests/test_improvement.py`; `docs/LEARNINGS.md` export |
 | Self-evaluation scorecard of EVALKIT | IV | `tests/test_improvement.py` (scenario 21); `evalkit self-check` |
-| Automatic application of a validated fix to the real project | PL | the cycle decides, never writes the project; level 3 perimeter is checked in code but applying stays manual (EK-0033) |
+| Controlled apply of an APPLY_ALLOWED fix + rollback (backups, policy re-checked at apply time) | IV / SIM | `tests/test_autonomy.py` (EK-0033 closed) |
 | Rule-based diagnosis only (config/version diff); no LLM hypotheses | by design | EK-0034 (V2) |
-| Scheduler, autonomy policies, resume | PL | Phase 7 (`scheduler` image mode exits 64) |
-| Acceptance report (30 scenarios) | PL | Phase 8 — covering tests now exist for 1, 2, 5–22, 24, 25, 28, 29; 23 blocked on CI |
+| Campaign resume after interruption (stuck runs cancelled, reservations released, attempts re-planned) | IV / SIM | `tests/test_autonomy.py` (scenario 26) |
+| Scheduler: YAML plan, durable state, due/interval, last_good baseline, campaign cost cap, unattended retrofit → apply → confirm → rollback, guards (per-day, cool-down, consecutive failures → pause + human resume), exclusive lock, auto-resume | IV / SIM | `tests/test_autonomy.py`; image `scheduler` mode wired (never built, EK-0030) |
+| Scheduler on a real cron/systemd/container | NT | wiring exists; no such environment here |
+| Acceptance report (30 scenarios) | PL | Phase 8 — covering tests now exist for 1, 2, 5–22, 24–26, 28, 29; 23 blocked on CI; 27 (injection) and 3/4 (real providers) to be assessed |
 | External publication (PyPI, npm, registry, GitHub) | not done | requires explicit authorisation (level 4) |

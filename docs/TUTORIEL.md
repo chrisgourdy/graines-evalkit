@@ -1,7 +1,7 @@
 # EVALKIT — Tutoriel d'utilisation
 
 Ce tutoriel est la référence d'usage pour Christophe. Il décrit ce qui fonctionne **à la fin de
-la Phase 6** (voir `docs/STATUS.md` pour le détail vérifié / non vérifié). Tout ce qui est
+la Phase 7** (voir `docs/STATUS.md` pour le détail vérifié / non vérifié). Tout ce qui est
 décrit ici tourne sans aucun fournisseur LLM : les agents de démonstration sont simulés.
 Un agent simulé n'est jamais une validation de production.
 
@@ -319,10 +319,83 @@ produisent une scorecard de l'agent `evalkit` (projet `evalkit-self`). Un contr�
 peut pas tourner est `NOT_EVALUATED`, jamais masqué ; le code de sortie est 1 si un contrôle
 échoue.
 
-## 11. Ce qui n'existe pas encore
+## 11. Autonomie : planificateur, reprise, sauvegarde, application contrôlée
 
-Planificateur et reprise après interruption (Phase 7), application automatique d'une
-correction validée dans ton projet (EK-0033), hypothèses de diagnostic par LLM (EK-0034),
-rapport de recette des 30 scénarios (Phase 8), adaptateurs Anthropic/OpenAI natifs, pont
-OpenTelemetry, tarifs réels, image Docker construite, publication PyPI/npm. `docs/STATUS.md`
-fait foi, ligne par ligne.
+### 11.1 Faire tourner EVALKIT sans Cowork ni humain
+
+Un plan YAML (modèle : `scenarios/examples/schedule.example.yaml`) décrit des jobs : projet,
+agent, profil, intervalle, politique de baseline, rétrofit ou non, application ou non,
+plafond de coût par cycle, garde-fous. Trois façons de l'exécuter :
+
+```bash
+evalkit schedule run plan.yaml --once --data-dir data      # cron / timer systemd : un tick puis sortie
+evalkit schedule run plan.yaml --poll-seconds 300          # processus long
+docker run … graines/evalkit scheduler /projects/plan.yaml --once   # image (CI uniquement ici)
+evalkit schedule status plan.yaml --data-dir data
+```
+
+À chaque tick, pour chaque job dû : reprise d'une campagne interrompue s'il y en a une, sinon
+campagne → scorecard ; saine (PASS ou WARNING sans régression) ⇒ elle devient `last_good`,
+baseline des campagnes suivantes ; incident ⇒ cycle de rétrofit seulement si `retrofit:
+true`, si une baseline saine existe et si les garde-fous le permettent (`max_retrofits_per_day`,
+`cooldown_minutes_after_retrofit`). Un job qui échoue `max_consecutive_failures` fois de suite
+se met en pause (événement `human.intervention`) jusqu'à ce que tu le relances :
+
+```bash
+evalkit schedule resume-job plan.yaml <job> --note "agent corrigé" --data-dir data
+```
+
+Un seul planificateur par répertoire de données (`scheduler.lock`) ; l'état de chaque job
+est en base (`schedule_state`), donc un planificateur tué reprend là où il en était.
+
+### 11.2 Application contrôlée d'une correction (niveau 3)
+
+Quand le cycle décide `APPLY_ALLOWED` (projet avec `autonomy.max_level: 3` et
+`apply_perimeter: [apply_fix_low_risk]`), tu peux appliquer, ou laisser le planificateur le
+faire (`apply_when_allowed: true`) :
+
+```bash
+evalkit retrofit apply <exp_id> --project-dir mon-projet --data-dir data
+evalkit retrofit rollback --project-dir mon-projet --data-dir data
+```
+
+L'application réécrit l'entrée de l'agent dans `evalkit.yaml` après avoir copié l'ancien
+fichier dans `.evalkit-backups/`, re-vérifie la politique **au moment d'appliquer** (un
+acteur `agent:*` ou un périmètre refermé ⇒ refus), et recharge le projet (sinon retour
+arrière immédiat). Le planificateur enchaîne par défaut une confirmation DEEP (HOLDOUT
+inclus) et annule l'application si elle échoue (`confirm_after_apply`). Tout est tracé :
+`fix.applied`, `fix.rolled_back`, avec avant/après.
+
+### 11.3 Reprendre une campagne interrompue
+
+```bash
+evalkit campaign resume <campaign_id> --project-dir mon-projet --data-dir data
+```
+
+Les runs restés RUNNING sont conservés en CANCELLED (sans `error` : jamais comptés comme
+échec de l'agent), les réservations budgétaires non réglées sont libérées, les tentatives
+manquantes sont replanifiées sous de nouveaux numéros (chaque seed est enregistré sur son
+run) et la campagne se termine normalement, scorecard et rapports compris. Refus si la
+campagne est déjà terminée, si la version de l'agent a changé ou si des scénarios ont
+disparu.
+
+### 11.4 Sauvegarder et restaurer
+
+```bash
+evalkit db backup sauvegardes/$(date +%F) --data-dir data
+evalkit db restore sauvegardes/2026-10-14 --yes --data-dir data
+```
+
+La sauvegarde est faite à chaud par l'API de sauvegarde SQLite (cohérente même pendant une
+campagne), avec `artifacts/`, `reports/` et un `manifest.json` (migrations, verdict de la
+chaîne d'audit). La restauration refuse une base corrompue ou une chaîne cassée, remplace le
+répertoire de données, rejoue les migrations et ajoute un événement `db.restore`. Arrête le
+planificateur et l'API avant de restaurer.
+
+## 12. Ce qui n'existe pas encore
+
+Rapport de recette des 30 scénarios (Phase 8), exécution réelle du planificateur sur un
+cron ou un conteneur (câblage présent, pas d'environnement ici), expressions cron et
+notifications (EK-0035/0036), hypothèses de diagnostic par LLM (EK-0034), adaptateurs
+Anthropic/OpenAI natifs, pont OpenTelemetry, tarifs réels, image Docker construite,
+publication PyPI/npm. `docs/STATUS.md` fait foi, ligne par ligne.

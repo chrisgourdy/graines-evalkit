@@ -629,3 +629,216 @@ def self_check(
     typer.echo(f"{card.scorecard_id}: {card.overall_status.value}")
     if card.overall_status.value == "FAIL":
         raise typer.Exit(code=1)
+
+
+# --- Phase 7: resume, backup/restore, apply/rollback, scheduler --------------------------
+
+campaign_app = typer.Typer(no_args_is_help=True, help="Campaign lifecycle (resume).")
+schedule_app = typer.Typer(no_args_is_help=True, help="Unattended execution from a YAML plan.")
+app.add_typer(campaign_app, name="campaign")
+app.add_typer(schedule_app, name="schedule")
+
+
+@campaign_app.command("resume")
+def campaign_resume(
+    campaign_id: str = typer.Argument(...),
+    project_dir: Path = typer.Option(..., "--project-dir", exists=True),
+    workers: int = typer.Option(1, "--workers", "-w", min=1),
+    actor: str = typer.Option("human"),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Resume an interrupted (RUNNING/FAILED) campaign from persisted state."""
+    from evalkit.core import CampaignRefusedError, CampaignRunner
+    from evalkit.reporting import export_campaign_csv, write_campaign_html, write_report
+    from evalkit.scoring import build_scorecard
+
+    repo = _repo(data_dir)
+    runner = CampaignRunner(repo, actor=actor, max_workers=workers)
+    try:
+        planned = runner.resume(project_dir, campaign_id)
+    except CampaignRefusedError as exc:
+        typer.echo(f"REFUSED: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    for rule in planned.rules:
+        typer.echo(f"  rule: {rule}")
+    campaign = asyncio.run(runner.execute(planned))
+    typer.echo(f"  status: {campaign.status.value}")
+    card = build_scorecard(repo, campaign.campaign_id, weights=planned.config.weights or None)
+    typer.echo(f"  scorecard: {card.overall_status.value} ({card.scorecard_id})")
+    out = _data_dir(data_dir) / "reports"
+    write_report(repo, campaign.campaign_id, out)
+    write_campaign_html(repo, campaign.campaign_id, out)
+    export_campaign_csv(repo, campaign.campaign_id, out)
+
+
+@db_app.command("backup")
+def db_backup(
+    dest: Path = typer.Argument(..., help="Destination directory (created)."),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+    no_artifacts: bool = typer.Option(False, "--no-artifacts", help="Database only."),
+) -> None:
+    """Consistent online backup: database (sqlite backup API), artifacts and reports."""
+    import json
+
+    manifest = _repo(data_dir).backup(dest, with_artifacts=not no_artifacts)
+    typer.echo(json.dumps(manifest, indent=2))
+    if not manifest["audit_chain_ok"]:
+        typer.echo("WARNING: audit chain of the source is broken", err=True)
+        raise typer.Exit(code=1)
+
+
+@db_app.command("restore")
+def db_restore(
+    backup_dir: Path = typer.Argument(..., exists=True),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+    yes: bool = typer.Option(False, "--yes", help="Confirm replacing the current data dir."),
+) -> None:
+    """Replace the data directory with a backup (refused if the backup is corrupt)."""
+    from evalkit.storage import SQLiteRepository
+
+    if not yes:
+        typer.echo("refusing without --yes: restore replaces the current database", err=True)
+        raise typer.Exit(code=2)
+    try:
+        repo = SQLiteRepository.restore(backup_dir, _data_dir(data_dir))
+    except (FileNotFoundError, RuntimeError) as exc:
+        typer.echo(f"REFUSED: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    repo.migrate()
+    ok, n = repo.verify_chain()
+    typer.echo(
+        f"restored into {_data_dir(data_dir)}: audit chain {'OK' if ok else 'BROKEN'} ({n} events)"
+    )
+
+
+@retrofit_app.command("apply")
+def retrofit_apply(
+    experiment: str = typer.Argument(..., help="Experiment id with decision APPLY_ALLOWED."),
+    project_dir: Path = typer.Option(..., "--project-dir", exists=True),
+    actor: str = typer.Option("human"),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Apply a validated low-risk fix to the project (policy level 3; backup kept)."""
+    from evalkit.improvement import ApplyRefusedError, apply_fix
+
+    try:
+        done = apply_fix(_repo(data_dir), project_dir, experiment, actor=actor)
+    except ApplyRefusedError as exc:
+        typer.echo(f"REFUSED: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(f"applied to agent {done.agent_id}; backup {done.backup_path}")
+    typer.echo(f"  before: {done.before}")
+    typer.echo(f"  after:  {done.after}")
+
+
+@retrofit_app.command("rollback")
+def retrofit_rollback(
+    project_dir: Path = typer.Option(..., "--project-dir", exists=True),
+    backup: Path | None = typer.Option(None, help="Specific backup file (default: latest)."),
+    reason: str = typer.Option("manual rollback"),
+    actor: str = typer.Option("human"),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Restore evalkit.yaml from the latest (or given) backup."""
+    from evalkit.improvement import ApplyRefusedError, rollback
+
+    try:
+        restored = rollback(_repo(data_dir), project_dir, actor=actor, backup=backup, reason=reason)
+    except ApplyRefusedError as exc:
+        typer.echo(f"REFUSED: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(f"restored from {restored}")
+
+
+@schedule_app.command("run")
+def schedule_run(
+    plan: Path = typer.Argument(..., exists=True, help="YAML plan (docs/RUNBOOK.md)."),
+    once: bool = typer.Option(False, "--once", help="One tick then exit (cron/systemd)."),
+    poll_seconds: float = typer.Option(60.0, min=1.0),
+    max_ticks: int | None = typer.Option(None, help="Stop after N ticks (tests)."),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Run due jobs of a plan: campaign → scorecard → optional retrofit/apply/confirm."""
+    from evalkit.scheduler import (
+        PlanLoadError,
+        Scheduler,
+        SchedulerLock,
+        SchedulerLockedError,
+        load_plan,
+    )
+
+    try:
+        loaded = load_plan(plan)
+    except PlanLoadError as exc:
+        typer.echo(f"REFUSED: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    repo = _repo(data_dir)
+    try:
+        with SchedulerLock(_data_dir(data_dir)):
+            sched = Scheduler(repo, loaded)
+            if once:
+                for o in sched.tick():
+                    typer.echo(_fmt_outcome(o))
+            else:
+                sched.run_forever(poll_seconds=poll_seconds, max_ticks=max_ticks)
+    except SchedulerLockedError as exc:
+        typer.echo(f"REFUSED: {exc}", err=True)
+        raise typer.Exit(code=3) from exc
+
+
+def _fmt_outcome(o: object) -> str:
+    from evalkit.scheduler import JobOutcome
+
+    assert isinstance(o, JobOutcome)
+    parts = [f"{o.job:20} {o.action:16}"]
+    if o.campaign_id:
+        parts.append(o.campaign_id)
+    if o.scorecard_status:
+        parts.append(f"scorecard={o.scorecard_status}")
+    if o.retrofit_decision:
+        parts.append(f"retrofit={o.retrofit_decision}")
+    if o.applied:
+        parts.append("applied")
+    if o.confirmed:
+        parts.append(f"confirmed={o.confirmed}")
+    if o.note:
+        parts.append(f"— {o.note}")
+    return " ".join(parts)
+
+
+@schedule_app.command("status")
+def schedule_status(
+    plan: Path = typer.Argument(..., exists=True),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Show the persisted state of every job of a plan."""
+    from evalkit.scheduler import PlanLoadError, Scheduler, load_plan
+
+    try:
+        sched = Scheduler(_repo(data_dir), load_plan(plan))
+    except PlanLoadError as exc:
+        typer.echo(f"REFUSED: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    for st in sched.states():
+        flag = f"PAUSED: {st.paused_reason}" if st.is_paused() else "active"
+        typer.echo(
+            f"{st.job_name:20} {flag}; last run {st.last_run_at or 'never'};"
+            f" last campaign {st.last_campaign_id or 'n/a'};"
+            f" running {st.running_campaign_id or '-'};"
+            f" last good {st.last_good_campaign_id or 'n/a'}; failures {st.consecutive_failures};"
+            f" retrofits today {st.retrofits_today}"
+        )
+
+
+@schedule_app.command("resume-job")
+def schedule_resume_job(
+    plan: Path = typer.Argument(..., exists=True),
+    job: str = typer.Argument(...),
+    note: str = typer.Option("", help="Why the human resumes it (audited)."),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Un-pause a job stopped by the failure guard (human decision, audited)."""
+    from evalkit.scheduler import Scheduler, load_plan
+
+    st = Scheduler(_repo(data_dir), load_plan(plan)).resume_job(job, note=note)
+    typer.echo(f"{st.job_name}: active")

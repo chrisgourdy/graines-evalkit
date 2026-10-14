@@ -35,7 +35,10 @@ status · title · notes.
 | EK-0028 | 1 | CLOSED | Phase 6 — ticket runtime, incident detection, dedup with history, BACKLOG.md export | done 2026-10-14 (`feedback/tickets.py`, `evalkit tickets`, `backlog export`) |
 | EK-0029 | 1 | CLOSED | Phase 6 — retrofit cycle on simulated regression, learnings KB, self-evaluation scorecard | done 2026-10-14 (`improvement/`, `evalkit retrofit`, `learnings`, `self-check`) |
 | EK-0032 | 3 | OPEN | Retrofit: when a cycle validates a fix, sibling tickets of the same campaign (other scenarios/regressions) stay OPEN; link them to the validated ticket | V1.1 |
-| EK-0033 | 2 | OPEN | Phase 7: apply a validated low-risk fix inside the level-3 perimeter (write `evalkit.yaml`, rollback, audit) — today the cycle only decides | |
+| EK-0033 | 2 | CLOSED | Phase 7: apply a validated low-risk fix inside the level-3 perimeter (write `evalkit.yaml`, rollback, audit) | done 2026-10-14 (`improvement/apply.py`, scheduler) |
+| EK-0035 | 3 | OPEN | Scheduler: per-job notification hook (webhook/e-mail) on pause, apply or rollback | V1.1 |
+| EK-0036 | 3 | OPEN | Scheduler: cron expressions in addition to `interval_minutes` | V1.1 |
+| EK-0037 | 2 | OPEN | Phase 8: acceptance report `docs/ACCEPTANCE_REPORT.md` generated from test evidence (ids, logs, paths) | |
 | EK-0034 | 4 | OPEN | Diagnosis hypotheses from an LLM (optional, provider required, clearly labelled as such) | V2 |
 | EK-0030 | 2 | OPEN | Run the CI docker job once the GitHub repo exists; record image digest in STATUS | blocked by EK-0005 |
 | EK-0031 | 3 | OPEN | API: pagination and filters on list endpoints; rate limiting | V1.1 |

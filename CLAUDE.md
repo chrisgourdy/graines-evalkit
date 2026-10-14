@@ -14,7 +14,7 @@ Full purpose and the three fundamental questions: `README.md`.
 
 ## 2. Project state
 
-- **Phase:** 6 — continuous improvement (complete) → next: Phase 7 — autonomy.
+- **Phase:** 7 — autonomy (complete) → next: Phase 8 — acceptance.
 - **Version:** 0.1.0.dev0 — contracts 1.0.0.
 - **What exists:** public contracts (`src/evalkit/contracts/`); SQLite storage with numbered
   migrations, transactions, content-addressed artifacts and an append-only hash-chained audit
@@ -59,13 +59,20 @@ Full purpose and the three fundamental questions: `README.md`.
   `LearningStore` (observed→verified→adopted|rejected, provenance), `self_evaluate`
   (deterministic checks → scorecard of agent `evalkit`), CLI `tickets detect|list|show|
   transition`, `retrofit run|confirm`, `learnings list|set-status|export`, `backlog export`,
-  `self-check`; 148 tests.
+  `self-check`; Phase 7 (`scheduler/`, `improvement/apply.py`, migration 0004):
+  `CampaignRunner.resume` (interrupted campaign re-planned from persisted state), backup /
+  restore of the data directory with integrity and chain checks, controlled apply of an
+  `APPLY_ALLOWED` fix with backups and rollback (policy re-checked at apply time), scheduler
+  with YAML plan and durable `schedule_state` (interval, `last_good` baseline, campaign cost
+  cap, unattended retrofit → apply → DEEP confirm → rollback, guards: per-day, cool-down,
+  consecutive failures → pause until human resume, exclusive lock, automatic resume), CLI
+  `campaign resume`, `db backup|restore`, `retrofit apply|rollback`, `schedule run|status|
+  resume-job`, Docker `scheduler` mode; 163 tests.
 - **What does not exist yet:** Docker image actually built (CI only, repo not yet linked),
-  scheduler/resume (`scheduler` mode of the image exits 64), automatic application of a fix
-  to a real project (the cycle only decides; applying is a human or a level-3 perimeter and
-  never implemented as a file write), LLM-based diagnosis (hypotheses are rule-based), OTel
-  bridge, real provider adapters, real tariffs (registry ships only a synthetic `sim` tariff
-  and a template). Nothing is published anywhere.
+  a scheduler run on a real cron/container (wiring only), cron expressions and notification
+  hooks (EK-0035/0036), acceptance report (Phase 8, EK-0037), LLM-based diagnosis
+  (hypotheses are rule-based), OTel bridge, real provider adapters, real tariffs (registry
+  ships only a synthetic `sim` tariff and a template). Nothing is published anywhere.
 - **Environment constraints (Phase 0 audit):** no Docker daemon in the development
   environment (image build/test happens in CI only); no LLM API key (all default tests use
   simulated agents); `evalkit` name taken on PyPI/npm → `graines-evalkit` / `@graines/evalkit`.
@@ -90,7 +97,7 @@ Responsibilities → packages under `src/evalkit/`:
 | REPORTING | `reporting/` | `build_report`, `render_campaign_html`, `build_dashboard`, `export_campaign_csv` |
 | AUDIT_TRAIL | `audit/` | `AuditTrail`, `make_event` (redaction) |
 | FEEDBACK / IMPROVEMENT | `feedback/`, `improvement/` | `TicketStore`, `RetrofitCycle`, `LearningStore`, `self_evaluate` |
-| SCHEDULER / GOVERNANCE | `scheduler/`, `governance/` | `PolicyEngine` → `ProjectPolicyEngine` (scheduler: Phase 7) |
+| SCHEDULER / GOVERNANCE | `scheduler/`, `governance/` | `Scheduler`, `load_plan`, `SchedulerLock`; `PolicyEngine` → `ProjectPolicyEngine` |
 | STORAGE | `storage/` | `Repository` → `SQLiteRepository` (also implements `AuditTrail`) |
 | DISTRIBUTION | `pyproject.toml`, `docker/`, `sdk/typescript/`, `.github/workflows/ci.yml` | `api/` (HTTP), `scripts/sbom.sh` |
 
@@ -138,6 +145,11 @@ uv venv .venv --python 3.13 && uv pip install -e ".[api]" --group dev
 .venv/bin/evalkit tickets list --project demo --data-dir data && .venv/bin/evalkit backlog export --project demo --data-dir data
 .venv/bin/evalkit learnings list --project demo --data-dir data
 .venv/bin/evalkit self-check --data-dir data
+.venv/bin/evalkit campaign resume <campaign_id> --project-dir <proj> --data-dir data
+.venv/bin/evalkit db backup backups/$(date +%F) --data-dir data && .venv/bin/evalkit db restore backups/<date> --yes --data-dir data
+.venv/bin/evalkit retrofit apply <exp_id> --project-dir <proj> --data-dir data && .venv/bin/evalkit retrofit rollback --project-dir <proj> --data-dir data
+.venv/bin/evalkit schedule run scenarios/examples/schedule.example.yaml --once --data-dir data
+.venv/bin/evalkit schedule status scenarios/examples/schedule.example.yaml --data-dir data
 EVALKIT_API_KEY=dev .venv/bin/evalkit api serve --data-dir data --projects-dir scenarios/examples
 uv build && sh scripts/sbom.sh
 cd sdk/typescript && npm ci && npm run gen && npm test
@@ -197,7 +209,8 @@ section of this index is absent.
 
 ## 10. Next actions
 
-See `docs/ROADMAP.md` → Phase 7: autonomy — scheduler entrypoints (`evalkit schedule`,
-image `scheduler` mode), campaign resume from persisted state after interruption, loop
-guards (max iterations, max cost per cycle, cool-down), policy-driven unattended retrofit
-within the project perimeter, restore procedure exercised by a test.
+See `docs/ROADMAP.md` → Phase 8: acceptance — map each of the 30 scenarios of
+`docs/ACCEPTANCE_SCENARIOS.md` to its covering test(s) and evidence, execute them, write
+the acceptance report (criterion, result, evidence ids/paths, simulated vs real,
+blocked items stay visible: 3/4 need a provider key, 23 needs CI, 27 to be assessed),
+then the V1 release checklist (`docs/RELEASE_POLICY.md`) without publishing anything.

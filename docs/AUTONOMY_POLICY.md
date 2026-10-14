@@ -27,8 +27,14 @@ autonomy:
   apply_perimeter: []       # kinds allowed at level 3, e.g. [apply_fix_low_risk]
 ```
 
-Even with `APPLY_ALLOWED`, EVALKIT does not yet write a fix into a real project (EK-0033):
-the decision is recorded and the human applies it, then runs `evalkit retrofit confirm`.
+Applying (`improvement/apply.py`, `evalkit retrofit apply <experiment>`) is itself policed:
+it requires an experiment recorded with decision `APPLY_ALLOWED`, a non-`agent:*` actor, a
+project whose policy grants `apply_fix_low_risk` *at apply time* (a perimeter closed since the
+experiment refuses the apply), and a project that still loads after the change; the previous
+`evalkit.yaml` is kept under `.evalkit-backups/` and `evalkit retrofit rollback` restores it.
+The scheduler applies only when its job says `apply_when_allowed: true`, then confirms on a
+DEEP campaign (HOLDOUT included) and rolls back when the confirmation fails. Both apply and
+rollback are `config.changed` events with before/after.
 
 Invariants: an agent cannot raise its level; cannot change the criteria it is judged on;
 budgets are code-enforced; every decision is an audit event; interrupted work resumes from

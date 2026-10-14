@@ -68,6 +68,14 @@ class PlannedCampaign:
     price: PriceEntry | None = None
     all_scenarios: list[Scenario] = field(default_factory=list)
     """Every scenario of the agent (run or not): persisted for coverage controls."""
+    attempts: dict[str, list[int]] = field(default_factory=dict)
+    """Explicit attempt numbers per scenario (resume); default 1..repetitions."""
+    resumed: bool = False
+
+    def attempts_for(self, scenario_id: str) -> list[int]:
+        return self.attempts.get(scenario_id) or list(
+            range(1, self.repetitions.get(scenario_id, 0) + 1)
+        )
 
     @property
     def planned_runs(self) -> int:
@@ -221,6 +229,105 @@ class CampaignRunner:
             raise CampaignRefusedError(msg)
         return PlannedCampaign(campaign, config, chosen, reps, adapter, rules, price, all_scenarios)
 
+    # -------------------------------------------------------------------- resume
+    RESUMABLE = (CampaignStatus.RUNNING, CampaignStatus.FAILED)
+
+    def resume(self, project_dir: Path, campaign_id: str) -> PlannedCampaign:
+        """Rebuild the plan of an interrupted campaign from persisted state.
+
+        Runs left RUNNING are marked CANCELLED (interrupted), their reservations released; the
+        attempts already consumed (any terminal status) are kept and numbering continues after
+        them, so seeds of the remaining attempts are the ones the original plan would have
+        used. Refused when the campaign is not RUNNING/FAILED or when the project no longer
+        matches it (agent version, scenario set).
+        """
+        campaign = self.repo.get_campaign(campaign_id)
+        if campaign.status not in self.RESUMABLE:
+            msg = f"campaign {campaign_id} is {campaign.status.value}: only RUNNING/FAILED resume"
+            raise CampaignRefusedError(msg)
+        config = load_project(project_dir)
+        if config.project_id != campaign.project_id or campaign.agent_id not in config.agents:
+            msg = "project directory does not match the campaign (project id or agent missing)"
+            raise CampaignRefusedError(msg)
+        agent_cfg = config.agents[campaign.agent_id]
+        adapter = create_adapter(agent_cfg.adapter, agent_cfg.version, agent_cfg.params)
+        if adapter.agent_version != campaign.agent_version:
+            msg = (
+                f"agent version changed since the campaign started "
+                f"({campaign.agent_version} -> {adapter.agent_version}): start a new campaign"
+            )
+            raise CampaignRefusedError(msg)
+        all_scenarios = [
+            s for s in load_scenarios(project_dir, config) if s.agent_id == campaign.agent_id
+        ]
+        by_id = {s.scenario_id: s for s in all_scenarios}
+        missing = [sid for sid in campaign.scenario_ids if sid not in by_id]
+        if missing:
+            msg = f"scenarios of the campaign no longer exist in the project: {missing}"
+            raise CampaignRefusedError(msg)
+        chosen = [by_id[sid] for sid in campaign.scenario_ids]
+        _, reps, rules = _select(
+            chosen,
+            campaign.profile,
+            adapter.capabilities.deterministic,
+            campaign.repetitions_override,
+        )
+        reps = {sid: reps.get(sid, 1) for sid in campaign.scenario_ids}
+        interrupted: list[str] = []
+        done: dict[str, set[int]] = {sid: set() for sid in campaign.scenario_ids}
+        highest: dict[str, int] = dict.fromkeys(campaign.scenario_ids, 0)
+        with self.repo.transaction():
+            for run in self.repo.list_runs(campaign_id):
+                highest[run.scenario_id] = max(highest.get(run.scenario_id, 0), run.attempt)
+                if run.status in (RunStatus.RUNNING, RunStatus.PENDING):
+                    # no result was produced: the row is kept as CANCELLED (evidence of the
+                    # interruption, ``error`` empty so it never counts as an agent failure) and
+                    # the attempt is redone under a new attempt number — its seed is derived
+                    # from that number and recorded on the run, as for every attempt
+                    self.repo.save_run(
+                        run.model_copy(update={"status": RunStatus.CANCELLED, "ended_at": utcnow()})
+                    )
+                    interrupted.append(run.run_id)
+                elif run.status is not RunStatus.CANCELLED:
+                    done.setdefault(run.scenario_id, set()).add(run.attempt)
+        released = self.controller.release_stale(campaign_id)
+        remaining = {
+            sid: list(
+                range(highest[sid] + 1, highest[sid] + 1 + max(0, reps[sid] - len(done[sid])))
+            )
+            for sid in campaign.scenario_ids
+        }
+        total = sum(len(v) for v in remaining.values())
+        rules.append(
+            f"resumed: {len(interrupted)} interrupted run(s) cancelled, {released} reservation(s) "
+            f"released, {total} run(s) remaining"
+        )
+        planned = PlannedCampaign(
+            campaign.model_copy(update={"status": CampaignStatus.RUNNING, "stop_reason": None}),
+            config,
+            [s for s in chosen if remaining[s.scenario_id]],
+            {sid: len(a) for sid, a in remaining.items() if a},
+            adapter,
+            rules,
+            None,
+            all_scenarios,
+            attempts={sid: a for sid, a in remaining.items() if a},
+            resumed=True,
+        )
+        self._emit(
+            EventType.HUMAN_INTERVENTION if self.actor == "human" else EventType.CONFIG_CHANGED,
+            planned.campaign,
+            payload={
+                "action": "campaign.resume",
+                "interrupted_runs_cancelled": interrupted,
+                "campaign_id_resumed": campaign_id,
+                "reservations_released": released,
+                "remaining_runs": planned.planned_runs,
+                "done_attempts": {k: sorted(v) for k, v in done.items()},
+            },
+        )
+        return planned
+
     # ----------------------------------------------------------------- execution
     def _emit(self, event_type: EventType, campaign: Campaign, **kw: Any) -> None:
         payload = kw.pop("payload", None)
@@ -251,6 +358,7 @@ class CampaignRunner:
             EventType.CAMPAIGN_STARTED,
             campaign,
             payload={
+                "resumed": planned.resumed,
                 "profile": campaign.profile.value,
                 "dry_run": campaign.dry_run,
                 "planned_runs": planned.planned_runs,
@@ -271,7 +379,10 @@ class CampaignRunner:
             return campaign
 
         campaign = campaign.model_copy(
-            update={"status": CampaignStatus.RUNNING, "started_at": utcnow()}
+            update={
+                "status": CampaignStatus.RUNNING,
+                "started_at": campaign.started_at if planned.resumed else utcnow(),
+            }
         )
         self.repo.save_campaign(campaign)
         stop_reason: str | None = None
@@ -321,7 +432,7 @@ class CampaignRunner:
             campaign,
             payload={"scenario_id": scenario.scenario_id, "version": scenario.version},
         )
-        for attempt in range(1, planned.repetitions[scenario.scenario_id] + 1):
+        for attempt in planned.attempts_for(scenario.scenario_id):
             if self._budget_blocked or (eliminatory and self.stop_on_eliminatory):
                 break
             run = await self._run_once(planned, scenario, attempt)

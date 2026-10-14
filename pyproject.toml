@@ -71,7 +71,7 @@ select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "RUF", "ANN", "S
 ignore = ["ANN401", "S101"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S", "ANN"]
+"tests/**" = ["S", "ANN", "E501"]
 "src/evalkit/cli/**" = ["B008"]
 "src/evalkit/api/**" = ["B008"]
 "src/evalkit/reporting/html.py" = ["E501"]  # inline HTML/CSS templates
@@ -79,6 +79,7 @@ ignore = ["ANN401", "S101"]
 "src/evalkit/feedback/**" = ["E501"]        # long SQL / message strings
 "src/evalkit/improvement/**" = ["E501"]     # long SQL / message strings
 "src/evalkit/governance/**" = ["E501"]      # long reason strings
+"src/evalkit/scheduler/**" = ["E501"]       # long SQL / message strings
 
 [tool.mypy]
 python_version = "3.11"

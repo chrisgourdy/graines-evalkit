@@ -18,10 +18,12 @@ from importlib import resources
 from pathlib import Path
 from typing import Any
 
+from evalkit.audit.events import make_event
 from evalkit.contracts import (
     AuditEvent,
     Campaign,
     EvaluationResult,
+    EventType,
     PriceEntry,
     Run,
     Scenario,
@@ -66,6 +68,85 @@ class SQLiteRepository:
     # ----------------------------------------------------------------- lifecycle
     def close(self) -> None:
         self._conn.close()
+
+    # ------------------------------------------------------------ backup/restore
+    def backup(self, dest_dir: Path, *, with_artifacts: bool = True) -> dict[str, object]:
+        """Consistent online copy of the database (sqlite backup API) + artifacts/ + reports/.
+
+        Safe while writers run (WAL): the copy is a snapshot at one point in time. Returns a
+        manifest (written as ``manifest.json``) with sizes and the audit chain verdict.
+        """
+        import json as _json
+        import shutil
+
+        dest = Path(dest_dir)
+        dest.mkdir(parents=True, exist_ok=True)
+        target = sqlite3.connect(dest / "evalkit.db")
+        try:
+            self._conn.backup(target)
+        finally:
+            target.close()
+        copied: dict[str, int] = {}
+        for sub in ("artifacts", "reports"):
+            src = self.data_dir / sub
+            if with_artifacts and src.is_dir():
+                shutil.copytree(src, dest / sub, dirs_exist_ok=True)
+                copied[sub] = sum(1 for p in (dest / sub).rglob("*") if p.is_file())
+        ok, n = self.verify_chain()
+        manifest: dict[str, object] = {
+            "created_at": utcnow().isoformat(),
+            "source": str(self.data_dir),
+            "db_bytes": (dest / "evalkit.db").stat().st_size,
+            "files": copied,
+            "audit_chain_ok": ok,
+            "audit_events": n,
+            "migrations": self.applied_migrations(),
+        }
+        (dest / "manifest.json").write_text(_json.dumps(manifest, indent=2), encoding="utf-8")
+        return manifest
+
+    @classmethod
+    def restore(cls, backup_dir: Path, data_dir: Path) -> SQLiteRepository:
+        """Replace ``data_dir`` content with a backup; refuses if the backup db is corrupt or
+        its audit chain is broken. Close every other handle on ``data_dir`` first."""
+        import shutil
+
+        src = Path(backup_dir)
+        if not (src / "evalkit.db").is_file():
+            msg = f"no evalkit.db in {src}"
+            raise FileNotFoundError(msg)
+        probe = sqlite3.connect(src / "evalkit.db")
+        try:
+            integrity = probe.execute("PRAGMA integrity_check").fetchone()[0]
+        finally:
+            probe.close()
+        if integrity != "ok":
+            msg = f"backup database integrity check failed: {integrity}"
+            raise RuntimeError(msg)
+        data = Path(data_dir)
+        data.mkdir(parents=True, exist_ok=True)
+        for name in ("evalkit.db", "evalkit.db-wal", "evalkit.db-shm"):
+            (data / name).unlink(missing_ok=True)
+        shutil.copy2(src / "evalkit.db", data / "evalkit.db")
+        for sub in ("artifacts", "reports"):
+            if (src / sub).is_dir():
+                shutil.rmtree(data / sub, ignore_errors=True)
+                shutil.copytree(src / sub, data / sub)
+        repo = cls(data)
+        ok, n = repo.verify_chain()
+        if not ok:
+            repo.close()
+            msg = f"restored audit chain is broken at sequence {n}"
+            raise RuntimeError(msg)
+        repo.emit(
+            make_event(
+                EventType.HUMAN_INTERVENTION,
+                component="storage",
+                actor="human",
+                payload={"action": "db.restore", "backup_dir": str(src), "events_verified": n},
+            )
+        )
+        return repo
 
     @contextmanager
     def transaction(self) -> Iterator[None]:

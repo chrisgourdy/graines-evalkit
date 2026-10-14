@@ -30,7 +30,7 @@ report paths). Failures stay visible. Simulated runs are labelled as such.
 | 23 | Docker execution | image runs `evalkit run` on the demo (CI) | no (CI) |
 | 24 | npm integration | SDK launches a campaign via API and reads results | no |
 | 25 | Two distinct projects | isolation of data and budgets verified | no |
-| 26 | Resume after interruption | killed campaign resumes, reservations released, no duplicate runs | no |
+| 26 | Resume after interruption | killed campaign resumes, reservations released, no duplicate runs; scheduler resumes on its own | no |
 | 27 | Prompt-injection protection | injected output does not alter criteria/budget; flagged by security evaluator | no |
 | 28 | Test without external provider | full default test suite passes offline | no |
 | 29 | Documentation inconsistency detection | removing a referenced doc fails the consistency test | no |
