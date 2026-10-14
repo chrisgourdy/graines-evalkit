@@ -210,11 +210,15 @@ def build_report(
 
 def render_markdown(report: AcceptanceReport) -> str:
     c = report.counts
-    verdict = (
-        "**ACCEPTED** — every executable scenario passed; blocked scenarios are listed with their reason"
-        if report.accepted
-        else "**NOT ACCEPTED** — see FAIL / NOT_RUN lines"
-    )
+    if not report.accepted:
+        verdict = "**NOT ACCEPTED** — see FAIL / NOT_RUN lines"
+    elif c["BLOCKED"]:
+        verdict = (
+            "**ACCEPTED** — every executable scenario passed; "
+            f"{c['BLOCKED']} blocked scenario(s) listed with their reason"
+        )
+    else:
+        verdict = "**ACCEPTED** — all 30 scenarios passed, none blocked"
     lines = [
         "# Acceptance report",
         "",
