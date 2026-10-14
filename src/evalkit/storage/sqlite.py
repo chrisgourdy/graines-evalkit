@@ -286,6 +286,37 @@ class SQLiteRepository:
             (scorecard.scorecard_id, scorecard.campaign_id, scorecard.model_dump_json()),
         )
 
+    def get_scorecard(self, scorecard_id: str) -> Scorecard:
+        row = self._conn.execute(
+            "SELECT json FROM scorecards WHERE scorecard_id=?", (scorecard_id,)
+        ).fetchone()
+        if row is None:
+            raise NotFoundError(scorecard_id)
+        return Scorecard.model_validate_json(row["json"])
+
+    def list_scorecards(self, project_id: str, agent_id: str | None = None) -> Iterator[Scorecard]:
+        """Scorecards ordered by generation time (one per campaign, latest wins)."""
+        rows = self._conn.execute("SELECT json FROM scorecards").fetchall()
+        cards = [Scorecard.model_validate_json(r["json"]) for r in rows]
+        cards = [c for c in cards if c.project_id == project_id]
+        if agent_id is not None:
+            cards = [c for c in cards if c.agent_id == agent_id]
+        yield from sorted(cards, key=lambda c: c.generated_at)
+
+    def scorecard_for_campaign(self, campaign_id: str) -> Scorecard | None:
+        row = self._conn.execute(
+            "SELECT json FROM scorecards WHERE campaign_id=? ORDER BY scorecard_id DESC LIMIT 1",
+            (campaign_id,),
+        ).fetchone()
+        return Scorecard.model_validate_json(row["json"]) if row else None
+
+    def list_tickets(self, project_id: str) -> Iterator[Ticket]:
+        rows = self._conn.execute(
+            "SELECT json FROM tickets WHERE project_id=? ORDER BY ticket_id", (project_id,)
+        )
+        for row in rows:
+            yield Ticket.model_validate_json(row["json"])
+
     def save_ticket(self, ticket: Ticket) -> None:
         self._conn.execute(
             "INSERT OR REPLACE INTO tickets(ticket_id, project_id, status, json)"

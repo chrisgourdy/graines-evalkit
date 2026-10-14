@@ -131,10 +131,22 @@ def run(
         + (f" ({campaign.stop_reason})" if campaign.stop_reason else "")
     )
     if report and not dry_run:
-        json_path, md_path = write_report(
-            repo, campaign.campaign_id, _data_dir(data_dir) / "reports"
+        from evalkit.reporting import export_campaign_csv, write_campaign_html
+        from evalkit.scoring import build_scorecard
+
+        card = build_scorecard(
+            repo,
+            campaign.campaign_id,
+            weights=planned.config.weights or None,
         )
-        typer.echo(f"  report: {md_path} / {json_path}")
+        typer.echo(f"  scorecard: {card.overall_status.value} ({card.scorecard_id})")
+        for w in card.validity_warnings:
+            typer.echo(f"    warning: {w}")
+        out = _data_dir(data_dir) / "reports"
+        json_path, md_path = write_report(repo, campaign.campaign_id, out)
+        html_path = write_campaign_html(repo, campaign.campaign_id, out)
+        export_campaign_csv(repo, campaign.campaign_id, out)
+        typer.echo(f"  report: {html_path} / {md_path} / {json_path} (+ CSV)")
 
 
 @app.command("report")
@@ -144,11 +156,14 @@ def report_cmd(
     out: Path | None = typer.Option(None, help="Output directory (default <data>/reports)."),
 ) -> None:
     """(Re)generate the JSON + Markdown report of a stored campaign."""
-    from evalkit.reporting import write_report
+    from evalkit.reporting import export_campaign_csv, write_campaign_html, write_report
 
     repo = _repo(data_dir)
-    json_path, md_path = write_report(repo, campaign_id, out or _data_dir(data_dir) / "reports")
-    typer.echo(f"{md_path}\n{json_path}")
+    target = out or _data_dir(data_dir) / "reports"
+    json_path, md_path = write_report(repo, campaign_id, target)
+    html_path = write_campaign_html(repo, campaign_id, target)
+    csvs = export_campaign_csv(repo, campaign_id, target)
+    typer.echo("\n".join(str(p) for p in (html_path, md_path, json_path, *csvs)))
 
 
 @app.command("campaigns")
@@ -314,3 +329,50 @@ def prices_list(data_dir: Path | None = typer.Option(None, "--data-dir")) -> Non
             f"{e.price_id}: in={e.input_per_million} out={e.output_per_million} {e.currency}"
             f" valid {e.valid_from}..{e.valid_to or 'now'} verified {e.verified_at:%Y-%m-%d}"
         )
+
+
+@app.command("scorecard")
+def scorecard_cmd(
+    campaign_id: str = typer.Argument(...),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+    project_dir: Path | None = typer.Option(None, help="Project dir to read weights from."),
+) -> None:
+    """Build (and persist) the scorecard of a stored campaign."""
+    from evalkit.core import load_project
+    from evalkit.scoring import build_scorecard
+
+    repo = _repo(data_dir)
+    weights = load_project(project_dir).weights if project_dir else None
+    card = build_scorecard(repo, campaign_id, weights=weights or None)
+    typer.echo(f"{card.scorecard_id}: {card.overall_status.value}")
+    for d in card.dimensions:
+        rate = "n/a" if d.pass_rate is None else f"{d.pass_rate:.0%}"
+        ci = f"[{d.ci.low:.2f}, {d.ci.high:.2f}]" if d.ci else ""
+        typer.echo(f"  {d.dimension.value:22} {d.status.value:14} {rate:>5} {ci} n={d.n_evaluated}")
+    if card.eliminatory_failures:
+        typer.echo(f"  eliminatory: {card.eliminatory_failures}")
+    if card.aggregate_score is not None:
+        typer.echo(f"  aggregate: {card.aggregate_score:.3f} — {card.aggregate_formula}")
+    for r in card.regressions:
+        typer.echo(f"  regression: {r}")
+    for w in card.validity_warnings:
+        typer.echo(f"  warning: {w}")
+
+
+dashboard_app = typer.Typer(no_args_is_help=True, help="Static HTML dashboard.")
+app.add_typer(dashboard_app, name="dashboard")
+
+
+@dashboard_app.command("build")
+def dashboard_build(
+    project: str = typer.Option(..., "--project"),
+    out: Path | None = typer.Option(None, help="Output dir (default <data>/dashboard/<project>)."),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Generate index, agent, campaign, finances and improvement pages from stored data."""
+    from evalkit.reporting import build_dashboard
+
+    repo = _repo(data_dir)
+    target = out or _data_dir(data_dir) / "dashboard" / project
+    for path in build_dashboard(repo, project, target):
+        typer.echo(str(path))

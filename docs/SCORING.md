@@ -30,6 +30,9 @@ Version, overall status, dimensions with pass rate / mean score / CI / n, critic
 uncertainty, stability, cost (with status), latency, trends, baseline comparison, regressions,
 campaign history, validity warnings.
 
+Implementation: `evalkit.scoring.build_scorecard` (persisted in `scorecards`, one per build;
+`repo.scorecard_for_campaign` returns the latest). Regressions emit `regression.detected`.
+
 ## 4. Validity controls (V1 rules)
 
 | Risk | Detection |
@@ -40,5 +43,11 @@ campaign history, validity warnings.
 | evaluator drift | LLM judge version or calibration set changed between compared campaigns → warning |
 | non-equivalent comparison | different scenario versions, adapter versions or profiles → comparison refused or flagged |
 | inconclusive difference | comparison CI spans 0 → INCONCLUSIVE, never "no regression" |
+
+Implemented thresholds: `MIN_N_PROPORTION = 5` (underpowered), `WIDE_INTERVAL = 0.5`
+(interval width), coverage = CRITICAL/HIGH scenarios of the agent not executed by the campaign,
+non-equivalence = profile mismatch with the baseline, evaluator drift = evaluator version set
+differs from the baseline's, overfitting = mean gain on DEVELOPMENT > 0 while mean gain on
+HOLDOUT ≤ 0 (paired by scenario).
 
 Control execution state and evaluation conclusion are always shown separately.

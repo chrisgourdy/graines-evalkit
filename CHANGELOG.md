@@ -5,6 +5,14 @@ All notable changes to this project are documented here (Keep a Changelog, semve
 ## [Unreleased]
 
 ### Added
+- Phase 4 (scoring & visualisation): SCORING_ENGINE with persisted scorecards (per-dimension
+  status/measurement/interval, eliminatory failures kept independent, optional weighted
+  aggregate with visible formula, missing dimensions, validity controls: underpowered, wide
+  interval, coverage, non-equivalent profiles, evaluator drift, overfitting signal, inconclusive
+  comparison, regressions → audit event), self-contained HTML campaign report and static
+  dashboard (overview/agent/campaign/finances/improvement) with inline SVG charts (ADR-0007),
+  CSV exports, CLI `scorecard`, `dashboard build`, `report` now writes HTML+MD+JSON+CSV,
+  `run` builds the scorecard with project weights.
 - Phase 3 (measurement & economics): statistical engine (intervals, BCa bootstrap, paired /
   unpaired comparisons with INCONCLUSIVE, effect sizes, Holm, seeded sampling, variance
   decomposition, coverage property tests), TOKEN_METER (migration 0002 `usage_records`,

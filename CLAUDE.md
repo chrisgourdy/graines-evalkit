@@ -14,7 +14,7 @@ Full purpose and the three fundamental questions: `README.md`.
 
 ## 2. Project state
 
-- **Phase:** 3 — measurement & economics (complete) → next: Phase 4 — scoring & visualisation.
+- **Phase:** 4 — scoring & visualisation (complete) → next: Phase 5 — distribution.
 - **Version:** 0.1.0.dev0 — contracts 1.0.0.
 - **What exists:** public contracts (`src/evalkit/contracts/`); SQLite storage with numbered
   migrations, transactions, content-addressed artifacts and an append-only hash-chained audit
@@ -31,11 +31,19 @@ Full purpose and the three fundamental questions: `README.md`.
   workers; `http.json` adapter; JSON + Markdown report with intervals, cost, cost per valid
   run, baseline comparison; CLI `run` (`--workers`, `--baseline`), `compare`, `budget set|
   status`, `prices import|list`, `report`, `campaigns`, `scenarios validate`, `db *`; demo
-  project `scenarios/examples/demo`; 118 tests, all provider-free (incl. 12-thread budget race).
-- **What does not exist yet:** scorecards and validity controls, HTML report, Docker build,
-  npm SDK, backlog/retrofit runtime, scheduler/resume, OTel bridge, real provider adapters,
-  real tariffs (registry ships only a synthetic `sim` tariff and a template). Do not describe
-  these as working.
+  project `scenarios/examples/demo`; SCORING_ENGINE (`scoring/`: persisted scorecards,
+  per-dimension status and measurement kind, eliminatory failures independent of any aggregate,
+  optional weighted aggregate with visible formula, validity controls: underpowered, wide
+  interval, coverage of CRITICAL/HIGH scenarios, non-equivalent profiles, evaluator drift,
+  overfitting signal DEVELOPMENT vs HOLDOUT, inconclusive comparison); visual reporting
+  (`reporting/svg.py`, `reporting/html.py`: self-contained HTML campaign report and static
+  dashboard — overview, agent, campaign, finances, improvement — inline SVG charts, no script,
+  ADR-0007); CSV exports; CLI `scorecard`, `dashboard build`, `report` (HTML+MD+JSON+CSV);
+  127 tests, all provider-free.
+- **What does not exist yet:** Docker build, PyPI wheel verification, npm SDK, HTTP API,
+  backlog/ticket runtime, retrofit cycle, learnings KB, scheduler/resume, OTel bridge, real
+  provider adapters, real tariffs (registry ships only a synthetic `sim` tariff and a
+  template). Do not describe these as working.
 - **Environment constraints (Phase 0 audit):** no Docker daemon in the development
   environment (image build/test happens in CI only); no LLM API key (all default tests use
   simulated agents); `evalkit` name taken on PyPI/npm → `graines-evalkit` / `@graines/evalkit`.
@@ -55,15 +63,15 @@ Responsibilities → packages under `src/evalkit/`:
 | TRAJECTORY_ANALYSIS | `trajectory/` | (contracts in `contracts/trajectory.py`) |
 | TOKEN_METER | `token_meter/` | `TokenMeter` → `SQLiteTokenMeter`, `providers.normalize` |
 | COST_CONTROLLER | `cost_controller/` | `CostController` → `SQLiteCostController`, `compute_cost` |
-| SCORING_ENGINE | `scoring/` | Phase 4 |
-| REPORTING | `reporting/` | Phase 4 |
+| SCORING_ENGINE | `scoring/` | `build_scorecard` |
+| REPORTING | `reporting/` | `build_report`, `render_campaign_html`, `build_dashboard`, `export_campaign_csv` |
 | AUDIT_TRAIL | `audit/` | `AuditTrail`, `make_event` (redaction) |
 | FEEDBACK / IMPROVEMENT | `feedback/`, `improvement/` | Phase 6 |
 | SCHEDULER / GOVERNANCE | `scheduler/`, `governance/` | `PolicyEngine` |
 | STORAGE | `storage/` | `Repository` → `SQLiteRepository` (also implements `AuditTrail`) |
 | DISTRIBUTION | `pyproject.toml`, `docker/`, `sdk/typescript/` | Phase 5 |
 
-Decisions: `docs/adr/` (ADR-0001 … ADR-0006). Add an ADR for any structural choice.
+Decisions: `docs/adr/` (ADR-0001 … ADR-0007). Add an ADR for any structural choice.
 
 ## 4. Contracts
 
@@ -99,6 +107,8 @@ uv venv .venv --python 3.13 && uv pip install -e ".[api]" --group dev
 .venv/bin/evalkit prices import prices/sim.prices.yaml --data-dir data
 .venv/bin/evalkit budget set project demo --max-cost 1.0 --data-dir data
 .venv/bin/evalkit compare <baseline_campaign_id> <candidate_campaign_id> --data-dir data
+.venv/bin/evalkit scorecard <campaign_id> --data-dir data --project-dir scenarios/examples/demo
+.venv/bin/evalkit dashboard build --project demo --data-dir data
 ```
 
 ## 7. Documentation map (canonical files)
@@ -152,7 +162,7 @@ section of this index is absent.
 
 ## 10. Next actions
 
-See `docs/ROADMAP.md` → Phase 4: SCORING_ENGINE (scorecards with per-dimension status,
-eliminatory independence, per-project weights, validity controls), HTML report with charts
-(library choice → ADR), dashboard pages (global / agent / campaign / finances / improvement),
-CSV export. Everything rendered from stored data only.
+See `docs/ROADMAP.md` → Phase 5: distribution — wheel build and clean-venv install test,
+Dockerfile + compose (multi-arch build in CI only), HTTP API (FastAPI, versioned `/v1`) as the
+SDK's target, npm `@graines/evalkit` SDK with types generated from `schemas/`, compatibility
+tests CLI ↔ API ↔ SDK, CI pipeline extension, SBOM. No external publication.

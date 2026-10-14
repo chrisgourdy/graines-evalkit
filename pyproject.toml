@@ -71,6 +71,8 @@ ignore = ["ANN401", "S101"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S", "ANN"]
 "src/evalkit/cli/**" = ["B008"]
+"src/evalkit/reporting/html.py" = ["E501"]  # inline HTML/CSS templates
+"src/evalkit/reporting/svg.py" = ["E501"]   # inline SVG fragments
 
 [tool.mypy]
 python_version = "3.11"

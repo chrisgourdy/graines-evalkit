@@ -66,6 +66,8 @@ class PlannedCampaign:
     adapter: AgentAdapter
     rules: list[str] = field(default_factory=list)
     price: PriceEntry | None = None
+    all_scenarios: list[Scenario] = field(default_factory=list)
+    """Every scenario of the agent (run or not): persisted for coverage controls."""
 
     @property
     def planned_runs(self) -> int:
@@ -217,7 +219,7 @@ class CampaignRunner:
                 "`evalkit budget set` (no implicit default budget exists)"
             )
             raise CampaignRefusedError(msg)
-        return PlannedCampaign(campaign, config, chosen, reps, adapter, rules, price)
+        return PlannedCampaign(campaign, config, chosen, reps, adapter, rules, price, all_scenarios)
 
     # ----------------------------------------------------------------- execution
     def _emit(self, event_type: EventType, campaign: Campaign, **kw: Any) -> None:
@@ -242,7 +244,7 @@ class CampaignRunner:
         campaign = planned.campaign
         self._budget_blocked = False
         with self.repo.transaction():
-            for s in planned.scenarios:
+            for s in planned.all_scenarios or planned.scenarios:
                 self.repo.save_scenario(s)
             self.repo.save_campaign(campaign)
         self._emit(
