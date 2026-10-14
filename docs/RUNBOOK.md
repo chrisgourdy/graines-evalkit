@@ -25,6 +25,12 @@ entry needs a source and a verification date). `evalkit budget set project <id> 
 before any cost-bearing campaign; `evalkit budget status` shows spent = settled + open
 reservations. `evalkit compare <baseline> <candidate>` runs the paired comparison.
 
+## API
+`EVALKIT_API_KEY=<secret> evalkit api serve --data-dir data --projects-dir <root>` where
+`<root>/<project_id>/evalkit.yaml` exists. Loopback by default; put a TLS reverse proxy in
+front before exposing it. Docker: `docker run -e EVALKIT_API_KEY=… -p 127.0.0.1:8765:8765
+-v evalkit-data:/data graines/evalkit api`.
+
 ## Audit
 `evalkit db check` verifies the audit hash chain and SQLite integrity;
 `evalkit db export-audit out.jsonl [--campaign <id>]` exports events.

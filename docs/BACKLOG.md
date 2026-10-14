@@ -29,7 +29,11 @@ status · title · notes.
 | EK-0021 | 3 | OPEN | Cluster bootstrap by scenario for campaign-level intervals | currently flagged in validity notes |
 | EK-0022 | 3 | OPEN | OpenTelemetry bridge (export events, ingest OTLP traces) | optional dep `otel` |
 | EK-0023 | 3 | OPEN | Report pagination/aggregation for campaigns with hundreds of scenarios | SVG pages grow linearly |
-| EK-0024 | 1 | OPEN | Phase 5 — wheel build + clean venv install test; Dockerfile + compose; CI multi-arch build | |
-| EK-0025 | 1 | OPEN | Phase 5 — HTTP API `/v1` (FastAPI) over core; API-key auth; local bind by default | |
-| EK-0026 | 1 | OPEN | Phase 5 — npm `@graines/evalkit` SDK (types from schemas, client, event/trace push); compat tests | |
+| EK-0024 | 1 | CLOSED | Phase 5 — wheel build + clean venv install test; Dockerfile + compose; CI multi-arch build | |
+| EK-0025 | 1 | CLOSED | Phase 5 — HTTP API `/v1` (FastAPI) over core; API-key auth; local bind by default | |
+| EK-0026 | 1 | CLOSED | Phase 5 — npm `@graines/evalkit` SDK (types from schemas, client, event/trace push); compat tests | |
+| EK-0028 | 1 | OPEN | Phase 6 — ticket runtime, incident detection, dedup with history, BACKLOG.md export | |
+| EK-0029 | 1 | OPEN | Phase 6 — retrofit cycle on simulated regression, learnings KB, self-evaluation scorecard | |
+| EK-0030 | 2 | OPEN | Run the CI docker job once the GitHub repo exists; record image digest in STATUS | blocked by EK-0005 |
+| EK-0031 | 3 | OPEN | API: pagination and filters on list endpoints; rate limiting | V1.1 |
 | EK-0027 | 3 | OPEN | Scorecard: suppress 'underpowered' warning for deterministic adapters at n=1 when the dimension is fully deterministic | currently honest but noisy |

@@ -1,0 +1,10 @@
+.venv
+.git
+**/__pycache__
+.mypy_cache
+.ruff_cache
+.pytest_cache
+dist
+data
+sdk/typescript/node_modules
+sdk/typescript/dist

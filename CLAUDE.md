@@ -14,7 +14,7 @@ Full purpose and the three fundamental questions: `README.md`.
 
 ## 2. Project state
 
-- **Phase:** 4 — scoring & visualisation (complete) → next: Phase 5 — distribution.
+- **Phase:** 5 — distribution (complete) → next: Phase 6 — continuous improvement.
 - **Version:** 0.1.0.dev0 — contracts 1.0.0.
 - **What exists:** public contracts (`src/evalkit/contracts/`); SQLite storage with numbered
   migrations, transactions, content-addressed artifacts and an append-only hash-chained audit
@@ -38,12 +38,18 @@ Full purpose and the three fundamental questions: `README.md`.
   overfitting signal DEVELOPMENT vs HOLDOUT, inconclusive comparison); visual reporting
   (`reporting/svg.py`, `reporting/html.py`: self-contained HTML campaign report and static
   dashboard — overview, agent, campaign, finances, improvement — inline SVG charts, no script,
-  ADR-0007); CSV exports; CLI `scorecard`, `dashboard build`, `report` (HTML+MD+JSON+CSV);
-  127 tests, all provider-free.
-- **What does not exist yet:** Docker build, PyPI wheel verification, npm SDK, HTTP API,
-  backlog/ticket runtime, retrofit cycle, learnings KB, scheduler/resume, OTel bridge, real
-  provider adapters, real tariffs (registry ships only a synthetic `sim` tariff and a
-  template). Do not describe these as working.
+  ADR-0007); CSV exports; HTTP API `/v1` (`api/app.py`: key-protected, loopback by default,
+  campaign launch in a worker thread, usage/event push, schemas); TypeScript SDK
+  `sdk/typescript` (`@graines/evalkit`, types generated from `schemas/`, fetch client, usage
+  builders, node:test); wheel build verified in a clean venv; `docker/` (multi-stage non-root
+  image with cli/api/worker modes, compose demo) validated statically only; CI with python
+  matrix, wheel, sdk, docker (multi-arch, no push) and sbom jobs; `scripts/sbom.sh`
+  (CycloneDX); CLI `scorecard`, `dashboard build`, `api serve`, `report` (HTML+MD+JSON+CSV);
+  133 tests incl. the CLI↔API↔SDK compatibility test on a live uvicorn server.
+- **What does not exist yet:** Docker image actually built (CI only, repo not yet linked),
+  backlog/ticket runtime, retrofit cycle, learnings KB, scheduler/resume (`scheduler` mode
+  of the image exits 64), OTel bridge, real provider adapters, real tariffs (registry ships
+  only a synthetic `sim` tariff and a template). Nothing is published anywhere.
 - **Environment constraints (Phase 0 audit):** no Docker daemon in the development
   environment (image build/test happens in CI only); no LLM API key (all default tests use
   simulated agents); `evalkit` name taken on PyPI/npm → `graines-evalkit` / `@graines/evalkit`.
@@ -58,6 +64,7 @@ Responsibilities → packages under `src/evalkit/`:
 |---|---|---|
 | CORE | `core/` | `CampaignRunner` (plan → execute), project loader |
 | ADAPTERS | `adapters/` | `AgentAdapter`: `sim.*`, `python.callable`, `http.json` |
+| API | `api/` | FastAPI `create_app()` — `/v1/*` |
 | EVALUATORS | `evaluators/` | `Evaluator`, `EvaluatorRegistry` |
 | STATISTICAL_ENGINE | `stats/` | `intervals`, `comparison`, `montecarlo` |
 | TRAJECTORY_ANALYSIS | `trajectory/` | (contracts in `contracts/trajectory.py`) |
@@ -69,7 +76,7 @@ Responsibilities → packages under `src/evalkit/`:
 | FEEDBACK / IMPROVEMENT | `feedback/`, `improvement/` | Phase 6 |
 | SCHEDULER / GOVERNANCE | `scheduler/`, `governance/` | `PolicyEngine` |
 | STORAGE | `storage/` | `Repository` → `SQLiteRepository` (also implements `AuditTrail`) |
-| DISTRIBUTION | `pyproject.toml`, `docker/`, `sdk/typescript/` | Phase 5 |
+| DISTRIBUTION | `pyproject.toml`, `docker/`, `sdk/typescript/`, `.github/workflows/ci.yml` | `api/` (HTTP), `scripts/sbom.sh` |
 
 Decisions: `docs/adr/` (ADR-0001 … ADR-0007). Add an ADR for any structural choice.
 
@@ -109,6 +116,9 @@ uv venv .venv --python 3.13 && uv pip install -e ".[api]" --group dev
 .venv/bin/evalkit compare <baseline_campaign_id> <candidate_campaign_id> --data-dir data
 .venv/bin/evalkit scorecard <campaign_id> --data-dir data --project-dir scenarios/examples/demo
 .venv/bin/evalkit dashboard build --project demo --data-dir data
+EVALKIT_API_KEY=dev .venv/bin/evalkit api serve --data-dir data --projects-dir scenarios/examples
+uv build && sh scripts/sbom.sh
+cd sdk/typescript && npm ci && npm run gen && npm test
 ```
 
 ## 7. Documentation map (canonical files)
@@ -162,7 +172,8 @@ section of this index is absent.
 
 ## 10. Next actions
 
-See `docs/ROADMAP.md` → Phase 5: distribution — wheel build and clean-venv install test,
-Dockerfile + compose (multi-arch build in CI only), HTTP API (FastAPI, versioned `/v1`) as the
-SDK's target, npm `@graines/evalkit` SDK with types generated from `schemas/`, compatibility
-tests CLI ↔ API ↔ SDK, CI pipeline extension, SBOM. No external publication.
+See `docs/ROADMAP.md` → Phase 6: continuous improvement — ticket runtime (incident detection
+from failures/regressions → structured tickets with evidence, dedup-with-history), retrofit
+cycle OBSERVE→…→LEARN on a simulated regression (isolated experiment, baseline comparison,
+decision policy, learnings KB with provenance and status), self-evaluation of EVALKIT's own
+mechanisms, `docs/BACKLOG.md` and `docs/LEARNINGS.md` generated from the store.

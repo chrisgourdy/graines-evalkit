@@ -1,0 +1,27 @@
+# Demo stack: API + a one-shot worker running the demo campaign. Never for production as is.
+#   EVALKIT_API_KEY=change-me docker compose -f docker/compose.demo.yml up --build
+services:
+  api:
+    build: { context: .., dockerfile: docker/Dockerfile }
+    image: graines/evalkit:dev
+    command: ["api"]
+    environment:
+      EVALKIT_API_KEY: ${EVALKIT_API_KEY:?set EVALKIT_API_KEY}
+      EVALKIT_API_HOST: 0.0.0.0
+    ports: ["127.0.0.1:8765:8765"]
+    volumes:
+      - evalkit-data:/data
+      - ../scenarios/examples/demo:/projects/demo:ro
+    read_only: true
+    tmpfs: ["/tmp"]
+    security_opt: ["no-new-privileges:true"]
+  demo-worker:
+    image: graines/evalkit:dev
+    depends_on: [api]
+    command: ["worker", "demo", "greeter", "standard"]
+    volumes:
+      - evalkit-data:/data
+      - ../scenarios/examples/demo:/projects/demo:ro
+    security_opt: ["no-new-privileges:true"]
+volumes:
+  evalkit-data: {}

@@ -5,6 +5,13 @@ All notable changes to this project are documented here (Keep a Changelog, semve
 ## [Unreleased]
 
 ### Added
+- Phase 5 (distribution): HTTP API `/v1` (FastAPI; `X-EvalKit-Key`, 503 when no key is
+  configured, loopback bind, background campaign execution, usage/event push, schemas), CLI
+  `api serve`, TypeScript SDK `@graines/evalkit` (types generated per schema, fetch client,
+  `waitForCampaign`, OpenAI/Anthropic usage builders, node:test), wheel build + clean-venv
+  install check, `docker/` (multi-stage non-root image, entrypoint modes cli/api/worker,
+  compose demo, statically validated), CI jobs python/wheel/sdk/docker/sbom,
+  `scripts/sbom.sh` (CycloneDX 1.6), compatibility test CLI ↔ API ↔ SDK on a live server.
 - Phase 4 (scoring & visualisation): SCORING_ENGINE with persisted scorecards (per-dimension
   status/measurement/interval, eliminatory failures kept independent, optional weighted
   aggregate with visible formula, missing dimensions, validity controls: underpowered, wide

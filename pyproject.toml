@@ -54,6 +54,8 @@ dev = [
   "types-PyYAML",
   "types-jsonschema",
   "pip-audit>=2.7",
+  "cyclonedx-bom>=4.0",
+  "build>=1.2",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -71,6 +73,7 @@ ignore = ["ANN401", "S101"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S", "ANN"]
 "src/evalkit/cli/**" = ["B008"]
+"src/evalkit/api/**" = ["B008"]
 "src/evalkit/reporting/html.py" = ["E501"]  # inline HTML/CSS templates
 "src/evalkit/reporting/svg.py" = ["E501"]   # inline SVG fragments
 
@@ -92,6 +95,7 @@ addopts = "-q --strict-markers"
 markers = [
   "integration: requires an external provider (never run by default)",
   "statistical: statistical property tests (seeded)",
+  "integration_local: spins up local servers/processes (no external provider)",
 ]
 
 [tool.coverage.run]

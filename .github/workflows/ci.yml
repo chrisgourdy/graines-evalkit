@@ -14,11 +14,75 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
       - run: uv venv .venv --python ${{ matrix.python }}
-      - run: uv pip install -e ".[api]" --group dev
+      - run: uv pip install -e ".[api,http]" --group dev
       - run: .venv/bin/ruff check src tests
       - run: .venv/bin/ruff format --check src tests
       - run: .venv/bin/mypy
-      - run: .venv/bin/pytest
-      - run: .venv/bin/pip-audit --skip-editable || true  # advisory until Phase 5 pins
-  # docker (amd64/arm64) and npm jobs are added in Phase 5 (docs/DISTRIBUTION.md)
+      - run: cd sdk/typescript && npm ci && npm run gen && npm run build
+      - run: .venv/bin/pytest            # includes the CLI↔API↔SDK compatibility test
+      - run: .venv/bin/pip-audit --skip-editable || true   # advisory until release pins (EK-0010)
+
+  wheel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv build
+      - run: uv venv /tmp/clean --python 3.13 && uv pip install --python /tmp/clean/bin/python dist/*.whl
+      - run: /tmp/clean/bin/evalkit version
+      - run: /tmp/clean/bin/evalkit run scenarios/examples/demo --agent greeter -p quick --data-dir /tmp/wheeldata
+      - uses: actions/upload-artifact@v4
+        with: { name: dist, path: dist/ }
+
+  sdk:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: sdk/typescript } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm ci
+      - run: npm run gen
+      - run: git diff --exit-code -- src/contracts   # generated types must match committed schemas
+      - run: npm test
+      - run: npm audit --omit=dev || true
+
+  docker:
+    # The only place images are built (no daemon in the development environment).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Build multi-arch (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: graines/evalkit:ci
+      - name: Build amd64 for smoke test
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64
+          load: true
+          tags: graines/evalkit:ci
+      - run: docker run --rm graines/evalkit:ci cli version
+      - run: docker run --rm graines/evalkit:ci worker demo greeter quick
+      - run: docker run --rm graines/evalkit:ci cli db check --data-dir /data
+
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv venv .venv --python 3.13 && uv pip install -e ".[api,http]" --group dev
+      - run: sh scripts/sbom.sh
+      - uses: actions/upload-artifact@v4
+        with: { name: sbom, path: dist/sbom/ }

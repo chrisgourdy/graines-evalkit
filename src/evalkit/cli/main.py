@@ -376,3 +376,33 @@ def dashboard_build(
     target = out or _data_dir(data_dir) / "dashboard" / project
     for path in build_dashboard(repo, project, target):
         typer.echo(str(path))
+
+
+api_app = typer.Typer(no_args_is_help=True, help="HTTP API server.")
+app.add_typer(api_app, name="api")
+
+
+@api_app.command("serve")
+def api_serve(
+    host: str = typer.Option("127.0.0.1", help="Bind address (loopback by default)."),
+    port: int = typer.Option(8765),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+    projects_dir: Path | None = typer.Option(None, help="Root holding <project_id>/evalkit.yaml."),
+) -> None:
+    """Serve the /v1 API (requires EVALKIT_API_KEY in the environment)."""
+    try:
+        import uvicorn
+    except ImportError as exc:  # pragma: no cover
+        typer.echo("install the api extra: pip install 'graines-evalkit[api]'", err=True)
+        raise typer.Exit(code=1) from exc
+    if data_dir:
+        os.environ["EVALKIT_DATA_DIR"] = str(data_dir)
+    if projects_dir:
+        os.environ["EVALKIT_PROJECTS_DIR"] = str(projects_dir)
+    if not os.environ.get("EVALKIT_API_KEY"):
+        typer.echo("EVALKIT_API_KEY is not set: every protected endpoint will answer 503", err=True)
+    uvicorn.run("evalkit.api.app:app", host=host, port=port, log_level="info")
+
+
+if __name__ == "__main__":  # pragma: no cover
+    app()
