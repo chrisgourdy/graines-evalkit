@@ -25,7 +25,7 @@ n'invente jamais une valeur : quand il ne sait pas, il le dit.
 git clone <ton dépôt> evalkit && cd evalkit
 uv venv .venv --python 3.13 && source .venv/bin/activate
 uv pip install -e ".[api,http]" --group dev
-evalkit version            # evalkit 0.1.0.dev0 (contracts 1.0.0)
+evalkit version            # evalkit 0.1.0 (contracts 1.0.0)
 pytest                     # 133 tests, aucun fournisseur externe requis
 ```
 

@@ -1,6 +1,6 @@
 {
   "name": "@graines/evalkit",
-  "version": "0.1.0-dev.0",
+  "version": "0.1.0",
   "description": "TypeScript client for the EVALKIT API (agent evaluation, token metering, cost control). Types are generated from the Python engine's JSON Schemas; no statistics are reimplemented here.",
   "license": "SEE LICENSE IN ../../README.md",
   "type": "module",

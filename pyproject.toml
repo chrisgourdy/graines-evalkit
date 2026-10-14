@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "graines-evalkit"
-version = "0.1.0.dev0"
+version = "0.1.0"
 description = "EVALKIT — evaluation, observability and continuous-improvement framework for AI agents"
 readme = "README.md"
 requires-python = ">=3.11"

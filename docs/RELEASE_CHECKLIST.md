@@ -1,6 +1,6 @@
 # Release checklist — V1 (0.1.0)
 
-State on 2026-10-14 after Phase 8 and the first CI run (private repository `chrisgourdy/graines-evalkit`, run 38576929393 on commit 7eb20b3: 8 jobs green). Each line is a fact with its evidence; nothing below
+State on 2026-10-14 at tag `v0.1.0`, after Phase 8 and two green CI runs (private repository `chrisgourdy/graines-evalkit`, run 38576929393 on commit 7eb20b3: 8 jobs green). Each line is a fact with its evidence; nothing below
 publishes anything. Publication (PyPI, npm, registry, GitHub) is a level-4 action that only
 Christophe can trigger, item by item.
 
@@ -8,7 +8,7 @@ Christophe can trigger, item by item.
 |---|---|---|---|
 | 1 | ruff + mypy --strict + pytest green | done | `evalkit acceptance run` → 134 test functions, 0 failures (`docs/evidence/acceptance-junit.xml`) |
 | 2 | Acceptance: 30 scenarios, criteria pre-defined, results with evidence | done — 30 PASS, 0 BLOCKED, 0 FAIL | `docs/ACCEPTANCE_REPORT.md`; scenario 23 on `docs/evidence/ci-docker.json` |
-| 3 | Changelog up to date | done | `CHANGELOG.md` `[Unreleased]` → to be renamed `0.1.0` at tag time |
+| 3 | Changelog up to date | done | `CHANGELOG.md` `[0.1.0] — 2026-10-14` |
 | 4 | Contract schema version | 1.0.0, unchanged since Phase 1 | `evalkit export-schemas` diff against `schemas/` empty |
 | 5 | Migrations numbered, applied by `db migrate`, backup before migrate documented | done (0001–0004) | `docs/RUNBOOK.md`; downgrades: none written — each migration is additive (new tables/columns), documented reason |
 | 6 | Compatibility CLI ↔ API ↔ SDK | done | `tests/test_compat.py` on a live server |
@@ -19,7 +19,9 @@ Christophe can trigger, item by item.
 | 11 | Docker image built and smoke-tested | done | CI job `docker` (5m02s): multi-arch build, amd64 smoke test with persistent volume, evidence artifact `docker-evidence` (https://github.com/chrisgourdy/graines-evalkit/actions/runs/38576929393) |
 | 12 | CI pipeline executed at least once | done | run #1 green: python ×3, acceptance, wheel, sdk, docker, sbom (https://github.com/chrisgourdy/graines-evalkit/actions/runs/38576929393) |
 | 13 | Rollback: previous wheel/image/tag available; data restore procedure | restore done, previous artifacts n/a for a first release | `evalkit db backup|restore`, `tests/test_autonomy.py` |
-| 14 | Version bump `0.1.0.dev0` → `0.1.0` and git tag | **human decision** | `pyproject.toml`, `src/evalkit/__init__.py`, `sdk/typescript/package.json` |
+| 14 | Version bump `0.1.0.dev0` → `0.1.0` and git tag | done on Christophe's go (2026-10-14) | `pyproject.toml`, `src/evalkit/__init__.py`, `sdk/typescript/package.json`; tag `v0.1.0` created locally, pushed by Christophe |
+| 16 | Second CI run on the release candidate commit | done | run 38579832916 on e1be980: 8 jobs green, 4m45s, acceptance job 30 PASS, Docker evidence `docs/evidence/ci-docker.json` (run #2 lineage) |
+| 17 | Validation in real operation (scheduler on a cron/container over time, on a client project) | **not done — prerequisite to any autonomous use on a client project** | `docs/STATUS.md`; to be planned in V1.1 alongside real provider adapters |
 | 15 | Publication PyPI / npm / Docker registry | **not done — level 4** | requires explicit authorisation, item by item; the GitHub repository is private and holds no release or tag |
 
 What a release does *not* claim: any validation on a real LLM provider (no key available;

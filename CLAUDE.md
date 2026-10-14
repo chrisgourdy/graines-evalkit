@@ -15,7 +15,7 @@ Full purpose and the three fundamental questions: `README.md`.
 ## 2. Project state
 
 - **Phase:** 8 — acceptance (complete) → next: release 0.1.0 on explicit authorisation (EK-0038).
-- **Version:** 0.1.0.dev0 — contracts 1.0.0.
+- **Version:** 0.1.0 (tag `v0.1.0`, internal technical release, nothing published) — contracts 1.0.0.
 - **What exists:** public contracts (`src/evalkit/contracts/`); SQLite storage with numbered
   migrations, transactions, content-addressed artifacts and an append-only hash-chained audit
   table (`storage/sqlite.py`); project/scenario loader (`core/project.py`); adapters

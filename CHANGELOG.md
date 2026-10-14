@@ -4,6 +4,21 @@ All notable changes to this project are documented here (Keep a Changelog, semve
 
 ## [Unreleased]
 
+Nothing yet. Next: V1.1 — real provider adapters (Anthropic, OpenAI) with measured token
+usage and costs on a real agent, real tariffs, comparison of two versions on verifiable
+business outcomes (`docs/ROADMAP.md`).
+
+## [0.1.0] — 2026-10-14
+
+First internal technical release (V1). Private GitHub repository, tag `v0.1.0`; no package,
+image or SDK published. Every validation runs on simulated agents: the 30 acceptance
+scenarios (`docs/ACCEPTANCE_REPORT.md`, 30 PASS) and the CI pipeline (python 3.11/3.12/3.13,
+acceptance, wheel, sdk, docker multi-arch + container smoke test on a persistent volume, sbom;
+runs 38576929393 and 38579832916) prove EVALKIT's mechanisms, not any production agent.
+Known limits: no real provider adapter (EK-0019), no real tariff (EK-0017), prompt-injection
+protection is structural + heuristic markers, scheduler never run on a real cron or long-lived
+container, Docker image build not byte-reproducible.
+
 ### Added
 - Phase 8 (acceptance): `acceptance/` package — registry of the 30 scenarios (criteria
   verbatim from `docs/ACCEPTANCE_SCENARIOS.md`, covering tests, modes simulated / whole

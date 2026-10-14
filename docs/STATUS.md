@@ -1,6 +1,6 @@
 # Status — implemented vs verified
 
-Updated: 2026-10-14 (end of Phase 8, after the first CI run).
+Updated: 2026-10-14 (tag v0.1.0, after two green CI runs: 38576929393 on 7eb20b3, 38579832916 on e1be980).
 
 Legend: **IV** implemented & verified (automated test exists and passes) · **IP** implemented,
 partially verified · **SIM** validated only with simulated agents · **NT** implemented, not
@@ -31,8 +31,8 @@ tested · **PL** planned · **BL** blocked.
 | TypeScript SDK `@graines/evalkit` | IV | `sdk/typescript/test` (fake fetch) + SDK leg of `tests/test_compat.py` (real server, node) |
 | CLI ↔ API ↔ SDK compatibility | IV / SIM | `tests/test_compat.py` — identical report shape across the three paths |
 | Wheel build + clean-venv install + demo run | IV | `tests/test_distribution.py` (integration_local); CI job `wheel` |
-| Docker image (Dockerfile, entrypoint, compose) | IV / SIM | built in CI for linux/amd64 + linux/arm64 (run 38576929393, digest `sha256:1191d5a9…`), smoke-tested in containers on a persistent volume: campaign COMPLETED, scorecard PASS, `db check` OK, `self-check` PASS; evidence `docs/evidence/ci-docker.json` + artifact `docker-evidence` (https://github.com/chrisgourdy/graines-evalkit/actions/runs/38576929393); compose demo still never run |
-| CI pipeline (python 3.11/3.12/3.13, acceptance, wheel, sdk, docker, sbom) | IV | first run green on commit 7eb20b3: 8 jobs, 5m06s, 6 artifacts (https://github.com/chrisgourdy/graines-evalkit/actions/runs/38576929393) |
+| Docker image (Dockerfile, entrypoint, compose) | IV / SIM | built in CI for linux/amd64 + linux/arm64 (run 38576929393 digest `sha256:1191d5a9…`, run 38579832916 digest `sha256:bb56784e…` — not byte-reproducible), smoke-tested in containers on a persistent volume: campaign COMPLETED, scorecard PASS, `db check` OK, `self-check` PASS; evidence `docs/evidence/ci-docker.json` + artifact `docker-evidence` (https://github.com/chrisgourdy/graines-evalkit/actions/runs/38576929393); compose demo still never run |
+| CI pipeline (python 3.11/3.12/3.13, acceptance, wheel, sdk, docker, sbom) | IV | two green runs: 7eb20b3 (38576929393, 5m06s) and e1be980 (38579832916, 4m45s), 8 jobs and 6 artifacts each |
 | SBOM (CycloneDX 1.6) | IV (manual) | `scripts/sbom.sh` produced 93 components locally |
 | Real provider adapters (Anthropic/OpenAI) | BL | no API key available |
 | OTel bridge | PL | EK-0022 |
@@ -46,7 +46,7 @@ tested · **PL** planned · **BL** blocked.
 | Rule-based diagnosis only (config/version diff); no LLM hypotheses | by design | EK-0034 (V2) |
 | Campaign resume after interruption (stuck runs cancelled, reservations released, attempts re-planned) | IV / SIM | `tests/test_autonomy.py` (scenario 26) |
 | Scheduler: YAML plan, durable state, due/interval, last_good baseline, campaign cost cap, unattended retrofit → apply → confirm → rollback, guards (per-day, cool-down, consecutive failures → pause + human resume), exclusive lock, auto-resume | IV / SIM | `tests/test_autonomy.py`; image `scheduler` mode wired (never built, EK-0030) |
-| Scheduler on a real cron/systemd/container | NT | wiring exists (image mode `scheduler`); not exercised by the CI smoke test (worker mode only) |
+| Scheduler on a real cron/systemd/container | NT | wiring exists (image mode `scheduler`); not exercised by the CI smoke test (worker mode only). **Prerequisite before any autonomous use on a client project** (release checklist item 17) |
 | Prompt-injection protection (structural + `injection_guard` detector) | IV / SIM | `tests/test_acceptance.py` (scenario 27) |
 | Acceptance report generated from JUnit evidence (`evalkit acceptance run`) | IV | `docs/ACCEPTANCE_REPORT.md`: 30 PASS, 0 BLOCKED, 0 FAIL (scenario 23 judged on the CI evidence file); `tests/test_acceptance.py` (scenario 30); CI job `acceptance` reproduces it as artifact `acceptance-evidence` |
 | Release checklist V1 | done except human-only items | `docs/RELEASE_CHECKLIST.md` |
