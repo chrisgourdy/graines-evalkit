@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Any, Protocol
 
 from pydantic import Field
 
-from evalkit.contracts import ContractModel, TokenUsage
+from evalkit.contracts import ContractModel, Cost, TokenUsage
 
 
 class UsageAttribution(ContractModel):
@@ -30,10 +30,13 @@ class UsageAttribution(ContractModel):
 
 
 class TokenMeter(Protocol):
-    def record(self, usage: TokenUsage, attribution: UsageAttribution) -> str:
+    def record(
+        self, usage: TokenUsage, attribution: UsageAttribution, cost: Cost | None = None
+    ) -> str:
         """Persist and return the usage record id."""
         ...
 
-    def aggregate(self, **filters: str) -> dict[str, int | None]:
-        """Sum by category over matching records; ``None`` when any record is UNKNOWN."""
+    def aggregate(self, **filters: str) -> dict[str, Any]:
+        """Totals by category over matching records with a status that inherits the weakest
+        source (REPORTED < ESTIMATED < PARTIAL < UNKNOWN); UNKNOWN records are never summed."""
         ...

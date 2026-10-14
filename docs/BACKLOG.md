@@ -16,9 +16,15 @@ status · title · notes.
 | EK-0008 | 3 | OPEN | Chart library decision (Chart.js vs ECharts) with ADR | Phase 4 |
 | EK-0009 | 3 | OPEN | Obtain API keys for separate real-integration test runs | adapters stay NT otherwise |
 | EK-0010 | 3 | OPEN | SBOM generation (CycloneDX) in release pipeline | |
-| EK-0011 | 1 | OPEN | Phase 3 — statistical engine (Wilson, Clopper-Pearson, BCa bootstrap, paired comparison, Holm, INCONCLUSIVE rules, seeded property tests) | |
-| EK-0012 | 1 | OPEN | Phase 3 — TOKEN_METER usage table (migration 0002), attribution, provider subset conventions | |
-| EK-0013 | 1 | OPEN | Phase 3 — COST_CONTROLLER: price registry seed, forecast from history, atomic reservations, caps, concurrency test | unblocks cost-bearing adapters |
-| EK-0014 | 2 | OPEN | Orchestrator concurrency (bounded workers) once reservations exist | sequential in Phase 2 |
+| EK-0011 | 1 | CLOSED | Phase 3 — statistical engine (Wilson, Clopper-Pearson, BCa bootstrap, paired comparison, Holm, INCONCLUSIVE rules, seeded property tests) | |
+| EK-0012 | 1 | CLOSED | Phase 3 — TOKEN_METER usage table (migration 0002), attribution, provider subset conventions | |
+| EK-0013 | 1 | CLOSED | Phase 3 — COST_CONTROLLER: price registry seed, forecast from history, atomic reservations, caps, concurrency test | unblocks cost-bearing adapters |
+| EK-0014 | 2 | CLOSED | Orchestrator concurrency (bounded workers) once reservations exist | sequential in Phase 2 |
 | EK-0015 | 2 | OPEN | Campaign resume (`campaign resume`) using persisted runs | Phase 7, groundwork exists (runs saved progressively) |
-| EK-0016 | 3 | OPEN | `http.json` adapter (httpx, optional dep) | moved from Phase 2 |
+| EK-0016 | 3 | CLOSED | `http.json` adapter (httpx, optional dep) | moved from Phase 2 |
+| EK-0017 | 2 | OPEN | Seed real provider tariffs with source URL + verification date (never fabricated) | registry ships `sim` + template only |
+| EK-0018 | 1 | OPEN | Phase 4 — SCORING_ENGINE scorecards, weights, validity controls | |
+| EK-0019 | 1 | OPEN | Phase 4 — HTML report + dashboard pages + CSV export; chart library ADR | |
+| EK-0020 | 3 | OPEN | TOST equivalence test with declared margin | V1.1 |
+| EK-0021 | 3 | OPEN | Cluster bootstrap by scenario for campaign-level intervals | currently flagged in validity notes |
+| EK-0022 | 3 | OPEN | OpenTelemetry bridge (export events, ingest OTLP traces) | optional dep `otel` |

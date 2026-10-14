@@ -19,6 +19,12 @@ Provider keys (Phase 3+) come from environment variables, never from files in th
 `<data>/reports/<campaign_id>.{json,md}`; `evalkit report <campaign_id>` regenerates them;
 `evalkit campaigns --project <id>` lists campaigns.
 
+## Budgets and prices
+`evalkit prices import prices/<file>.yaml` (template: `prices/TEMPLATE.prices.yaml`; every
+entry needs a source and a verification date). `evalkit budget set project <id> --max-cost X`
+before any cost-bearing campaign; `evalkit budget status` shows spent = settled + open
+reservations. `evalkit compare <baseline> <candidate>` runs the paired comparison.
+
 ## Audit
 `evalkit db check` verifies the audit hash chain and SQLite integrity;
 `evalkit db export-audit out.jsonl [--campaign <id>]` exports events.

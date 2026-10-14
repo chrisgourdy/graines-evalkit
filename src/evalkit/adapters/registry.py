@@ -6,6 +6,7 @@ from collections.abc import Callable
 from typing import Any
 
 from evalkit.adapters.callable_adapter import CallableAdapter
+from evalkit.adapters.http_adapter import HttpJsonAdapter
 from evalkit.adapters.interfaces import AgentAdapter
 from evalkit.adapters.sim import DeterministicSimAdapter, StochasticSimAdapter
 
@@ -15,6 +16,7 @@ _REGISTRY: dict[str, AdapterFactory] = {
     "sim.deterministic": DeterministicSimAdapter,
     "sim.stochastic": StochasticSimAdapter,
     "python.callable": CallableAdapter,
+    "http.json": HttpJsonAdapter,
 }
 
 

@@ -6,15 +6,20 @@ Contracts: `Budget`, `BudgetThresholds`, `PriceEntry`, `Cost`, `CampaignPlan`,
 ## 1. Price registry
 
 Versioned `PriceEntry` records (provider, model, validity window, per-category tariffs,
-currency, source, verification date, rules). Lookup = provider + model + date. No entry ⇒
-`Cost(status=UNKNOWN)`. Campaigns freeze the price ids they used so historical reports stay
+currency, source, verification date, rules). Lookup = provider + model + date (`evalkit prices import <yaml>`, template in
+`prices/TEMPLATE.prices.yaml`; EVALKIT ships no real tariff, only a synthetic `sim` one). No
+entry ⇒ `Cost(status=UNKNOWN)`. Sub-categories declared as subsets are removed from their
+parent before pricing and priced once at their own tariff (or the parent's). Campaigns freeze the price ids they used so historical reports stay
 interpretable. Currency conversions store the rate, source and date (`FxRate`).
 
 ## 2. Budgets
 
 Scopes: organisation, project, agent, campaign, day, month, evaluation type. Monetary and token
 caps. Inheritance: a child without a cap inherits the parent's; the tightest applicable cap
-wins. There is no built-in default budget: a paid run with no applicable budget is BLOCKED.
+wins. There is no built-in default budget: a paid run with no applicable budget is BLOCKED and the
+campaign is refused at planning time (`evalkit budget set <scope> <ref> --max-cost/--max-tokens`).
+Scope refs: `project` → project id, `agent` → `project/agent`, `campaign` → campaign id,
+`organization` → `*`, `day` → `YYYY-MM-DD`, `month` → `YYYY-MM`, `evaluation_type` → profile.
 
 ## 3. Forecast before execution
 

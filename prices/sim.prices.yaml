@@ -1,0 +1,19 @@
+# Synthetic tariff for the `sim` provider (tests and demos). Not a real price.
+- price_id: sim/sim-deterministic-1/2026-01-01
+  provider: sim
+  model_id: sim-deterministic-1
+  valid_from: 2026-01-01
+  currency: USD
+  input_per_million: 1.00
+  output_per_million: 2.00
+  source: synthetic (EVALKIT test fixture)
+  verified_at: 2026-01-01T00:00:00Z
+- price_id: sim/sim-stochastic-1/2026-01-01
+  provider: sim
+  model_id: sim-stochastic-1
+  valid_from: 2026-01-01
+  currency: USD
+  input_per_million: 1.00
+  output_per_million: 2.00
+  source: synthetic (EVALKIT test fixture)
+  verified_at: 2026-01-01T00:00:00Z

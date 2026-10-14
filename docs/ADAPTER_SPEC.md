@@ -25,7 +25,7 @@ engine skip repetitions. `cost_bearing=False` exempts the adapter from budget re
 |---|---|---|
 | `sim.deterministic` | 2 (done) | behaviours reference/wrong/fixed/error, REPORTED synthetic usage (or UNKNOWN) |
 | `sim.stochastic` | 2 (done) | seeded p_wrong/p_error/p_retry, latency jitter, retry/error steps |
-| `http.json` | 3 | POST scenario to any HTTP endpoint (language-agnostic integration) |
+| `http.json` | 3 (done) | POST scenario to any HTTP endpoint; response is untrusted; usage UNKNOWN unless returned |
 | `python.callable` | 2 (done) | wrap an in-process callable; usage UNKNOWN unless returned |
 | `anthropic.messages` | 3 | real provider (needs key; integration tests only) |
 | `openai.chat` | 3 | real provider (needs key; integration tests only) |

@@ -15,9 +15,9 @@ from evalkit.storage import NotFoundError, SQLiteRepository
 def test_migrations_apply_once(tmp_path: Path) -> None:
     repo = SQLiteRepository(tmp_path)
     assert repo.applied_migrations() == []
-    assert repo.migrate() == [1]
+    assert repo.migrate() == [1, 2]
     assert repo.migrate() == []
-    assert repo.applied_migrations() == [1]
+    assert repo.applied_migrations() == [1, 2]
 
 
 def test_transaction_rollback(repo: SQLiteRepository) -> None:

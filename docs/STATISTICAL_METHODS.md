@@ -41,8 +41,15 @@ sensitivity. All sampling is seeded and the seed is stored with the campaign.
 
 - Absence of a detected difference ≠ equivalence. Equivalence requires a TOST-style test with a
   declared margin (V1.1).
-- INCONCLUSIVE when: n below the minimum for the method, interval spans the decision
-  threshold, assumptions violated, or evaluator coverage is incomplete.
+- INCONCLUSIVE when: n below the minimum for the method (`MIN_N_PROPORTION=5`,
+  `MIN_PAIRS=5`), interval spans the decision threshold, assumptions violated, or evaluator
+  coverage is incomplete.
+- Comparison rule (`stats.comparison`): with a margin m, FAIL when the CI of the paired
+  difference lies entirely below −m; PASS when it lies entirely above −m and the sample is
+  not underpowered (above +m ⇒ improvement; otherwise "no regression beyond m", explicitly
+  not equivalence); INCONCLUSIVE otherwise.
+- Wilson over-covers near p→1 for small n (discreteness): the coverage test tolerates
+  ±3 points around nominal; Clopper-Pearson is used at the boundaries.
 - Every reported figure carries n, method, level, and warnings.
 
 ## 5. Markov chains (V2, contracts in V1)

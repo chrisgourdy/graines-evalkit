@@ -128,7 +128,7 @@ def test_stop_on_eliminatory(repo: SQLiteRepository, demo_dir: Path) -> None:
     assert len(list(repo.list_runs(campaign.campaign_id))) == 1
 
 
-def test_cost_bearing_adapter_refused_without_cost_controller(
+def test_cost_bearing_adapter_refused_without_budget(
     repo: SQLiteRepository, tmp_path: Path, demo_dir: Path
 ) -> None:
     (tmp_path / "evalkit.yaml").write_text(
@@ -143,7 +143,7 @@ def test_cost_bearing_adapter_refused_without_cost_controller(
     )
     (tmp_path / "scenarios" / "s.yaml").write_text(src)
     runner = CampaignRunner(repo)
-    with pytest.raises(CampaignRefusedError, match="COST_CONTROLLER"):
+    with pytest.raises(CampaignRefusedError, match="no applicable budget"):
         runner.plan(tmp_path, "paid", profile=Profile.STANDARD)
     assert runner.plan(tmp_path, "paid", profile=Profile.STANDARD, dry_run=True).campaign.dry_run
 
@@ -200,7 +200,7 @@ def test_report_files_written(repo: SQLiteRepository, demo_dir: Path, tmp_path: 
     json_path, md_path = write_report(repo, campaign.campaign_id, tmp_path / "reports")
     data = json.loads(json_path.read_text())
     assert data["campaign"]["campaign_id"] == campaign.campaign_id
-    assert data["dimensions"]["accuracy"]["ci"] is None
+    assert data["dimensions"]["accuracy"]["ci"]["method"] in ("wilson", "clopper_pearson")
     md = md_path.read_text()
     assert "Validity limits" in md and "not a production validation" in md
 

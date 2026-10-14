@@ -29,7 +29,16 @@ class Reservation(ContractModel):
 
 
 class CostController(Protocol):
-    def forecast(self, campaign: Campaign) -> CampaignPlan: ...
+    def forecast(
+        self,
+        campaign: Campaign | None,
+        *,
+        planned_runs: int,
+        cost_bearing: bool,
+        history_tokens: list[int] | None = None,
+        price_per_million_hint: float | None = None,
+        evaluator_runs_cost_bearing: int = 0,
+    ) -> CampaignPlan: ...
 
     def reserve(
         self,
@@ -42,6 +51,8 @@ class CostController(Protocol):
         """Atomic check-and-reserve. Safe under concurrent workers (storage-level locking)."""
         ...
 
-    def settle(self, reservation_id: str, observed: Cost) -> None: ...
+    def settle(
+        self, reservation_id: str, observed: Cost, observed_tokens: int | None = None
+    ) -> None: ...
 
     def release(self, reservation_id: str) -> None: ...

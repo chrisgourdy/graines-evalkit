@@ -14,19 +14,28 @@ Full purpose and the three fundamental questions: `README.md`.
 
 ## 2. Project state
 
-- **Phase:** 2 — MVP end-to-end cycle (complete) → next: Phase 3 — measurement & economics.
+- **Phase:** 3 — measurement & economics (complete) → next: Phase 4 — scoring & visualisation.
 - **Version:** 0.1.0.dev0 — contracts 1.0.0.
 - **What exists:** public contracts (`src/evalkit/contracts/`); SQLite storage with numbered
   migrations, transactions, content-addressed artifacts and an append-only hash-chained audit
   table (`storage/sqlite.py`); project/scenario loader (`core/project.py`); adapters
   `sim.deterministic`, `sim.stochastic`, `python.callable`; eight deterministic evaluators;
   campaign orchestrator with profiles, DRY_RUN and eliminatory stop (`core/orchestrator.py`);
-  JSON + Markdown campaign report (`reporting/basic.py`); CLI `run`, `report`, `campaigns`,
-  `scenarios validate`, `db migrate|check|export-audit`; demo project
-  `scenarios/examples/demo`; 86 tests, all provider-free.
-- **What does not exist yet:** statistics / confidence intervals, TOKEN_METER aggregation
-  tables, COST_CONTROLLER (cost-bearing adapters are refused), scorecards, HTML report,
-  Docker build, npm SDK, backlog/retrofit runtime, scheduler. Do not describe these as working.
+  statistical engine (`stats/`: Wilson/Clopper-Pearson/Jeffreys/rule-of-three, t and BCa
+  bootstrap, paired and unpaired comparisons with INCONCLUSIVE rules, effect sizes, Holm,
+  seeded sampling, variance decomposition); TOKEN_METER (`token_meter/`: usage_records table,
+  attribution, provider subset conventions, status-inheriting aggregation); COST_CONTROLLER
+  (`cost_controller/`: price registry import, subset-aware cost computation, forecast from
+  history, hierarchical budgets, atomic reservations under `BEGIN IMMEDIATE`, thresholds,
+  release of stale reservations); orchestrator with reservations, STOPPED_BUDGET, bounded
+  workers; `http.json` adapter; JSON + Markdown report with intervals, cost, cost per valid
+  run, baseline comparison; CLI `run` (`--workers`, `--baseline`), `compare`, `budget set|
+  status`, `prices import|list`, `report`, `campaigns`, `scenarios validate`, `db *`; demo
+  project `scenarios/examples/demo`; 118 tests, all provider-free (incl. 12-thread budget race).
+- **What does not exist yet:** scorecards and validity controls, HTML report, Docker build,
+  npm SDK, backlog/retrofit runtime, scheduler/resume, OTel bridge, real provider adapters,
+  real tariffs (registry ships only a synthetic `sim` tariff and a template). Do not describe
+  these as working.
 - **Environment constraints (Phase 0 audit):** no Docker daemon in the development
   environment (image build/test happens in CI only); no LLM API key (all default tests use
   simulated agents); `evalkit` name taken on PyPI/npm → `graines-evalkit` / `@graines/evalkit`.
@@ -40,12 +49,12 @@ Responsibilities → packages under `src/evalkit/`:
 | Responsibility | Package | Port |
 |---|---|---|
 | CORE | `core/` | `CampaignRunner` (plan → execute), project loader |
-| ADAPTERS | `adapters/` | `AgentAdapter` |
+| ADAPTERS | `adapters/` | `AgentAdapter`: `sim.*`, `python.callable`, `http.json` |
 | EVALUATORS | `evaluators/` | `Evaluator`, `EvaluatorRegistry` |
-| STATISTICAL_ENGINE | `stats/` | result contracts |
+| STATISTICAL_ENGINE | `stats/` | `intervals`, `comparison`, `montecarlo` |
 | TRAJECTORY_ANALYSIS | `trajectory/` | (contracts in `contracts/trajectory.py`) |
-| TOKEN_METER | `token_meter/` | `TokenMeter` |
-| COST_CONTROLLER | `cost_controller/` | `CostController` |
+| TOKEN_METER | `token_meter/` | `TokenMeter` → `SQLiteTokenMeter`, `providers.normalize` |
+| COST_CONTROLLER | `cost_controller/` | `CostController` → `SQLiteCostController`, `compute_cost` |
 | SCORING_ENGINE | `scoring/` | Phase 4 |
 | REPORTING | `reporting/` | Phase 4 |
 | AUDIT_TRAIL | `audit/` | `AuditTrail`, `make_event` (redaction) |
@@ -87,6 +96,9 @@ uv venv .venv --python 3.13 && uv pip install -e ".[api]" --group dev
 .venv/bin/evalkit run scenarios/examples/demo --agent greeter --data-dir data -p standard
 .venv/bin/evalkit run scenarios/examples/demo --agent greeter-flaky -p deep --seed 42 --data-dir data
 .venv/bin/evalkit db check --data-dir data
+.venv/bin/evalkit prices import prices/sim.prices.yaml --data-dir data
+.venv/bin/evalkit budget set project demo --max-cost 1.0 --data-dir data
+.venv/bin/evalkit compare <baseline_campaign_id> <candidate_campaign_id> --data-dir data
 ```
 
 ## 7. Documentation map (canonical files)
@@ -140,7 +152,7 @@ section of this index is absent.
 
 ## 10. Next actions
 
-See `docs/ROADMAP.md` → Phase 3: statistical engine (Wilson/bootstrap/paired comparison,
-Monte-Carlo sampling, INCONCLUSIVE rules), TOKEN_METER usage table + attribution + provider
-conventions, COST_CONTROLLER (price registry, forecast, atomic reservations, caps, concurrency
-test), audit OTel bridge (optional). Migration 0002 introduces the usage/reservation tables.
+See `docs/ROADMAP.md` → Phase 4: SCORING_ENGINE (scorecards with per-dimension status,
+eliminatory independence, per-project weights, validity controls), HTML report with charts
+(library choice → ADR), dashboard pages (global / agent / campaign / finances / improvement),
+CSV export. Everything rendered from stored data only.

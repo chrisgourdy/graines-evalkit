@@ -21,8 +21,10 @@ input, output, cached input (cache read), cache creation (cache write), reasonin
 tokens, total; plus provider-native units for non-token billing (images, seconds of audio, tool
 calls billed per call). Sub-categories are often already included in input/output/total:
 `TokenUsage.subsets` declares these inclusions per provider and `billable_total()` honours them.
-Known provider conventions are catalogued in `src/evalkit/token_meter/providers.py` (Phase 3)
-and tested against fixtures of real API payloads.
+Known provider conventions are catalogued in `src/evalkit/token_meter/providers.py` and
+tested against fixtures that follow the documented API shapes (Anthropic: cache figures are
+separate from `input_tokens`; OpenAI: `cached_tokens` ⊂ `prompt_tokens`, `reasoning_tokens` ⊂
+`completion_tokens`). Verification against live payloads is tracked by EK-0007.
 
 ## 3. Attribution
 

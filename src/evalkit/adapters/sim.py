@@ -87,6 +87,8 @@ class DeterministicSimAdapter:
         self.outputs: dict[str, object] = dict(p.get("outputs", {}))
         self.report_usage: bool = bool(p.get("report_usage", True))
         self.model = str(p.get("model", "sim-deterministic-1"))
+        self.provider = _PROVIDER
+        self.cost_bearing = bool(p.get("cost_bearing", False))
         self.tools: list[str] = list(p.get("tools", []))
 
     @property
@@ -98,7 +100,7 @@ class DeterministicSimAdapter:
             reports_trajectory=True,
             deterministic=True,
             supports_seed=False,
-            cost_bearing=False,
+            cost_bearing=self.cost_bearing,
         )
 
     @property
@@ -157,6 +159,8 @@ class StochasticSimAdapter:
         self.latency_ms = float(p.get("latency_ms", 50.0))
         self.report_usage = bool(p.get("report_usage", True))
         self.model = str(p.get("model", "sim-stochastic-1"))
+        self.provider = _PROVIDER
+        self.cost_bearing = bool(p.get("cost_bearing", False))
         self.sleep = bool(p.get("sleep", False))
 
     @property
@@ -168,7 +172,7 @@ class StochasticSimAdapter:
             reports_trajectory=True,
             deterministic=False,
             supports_seed=True,
-            cost_bearing=False,
+            cost_bearing=self.cost_bearing,
         )
 
     @property

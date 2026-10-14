@@ -1,0 +1,19 @@
+# Price registry import template — `evalkit prices import prices/<file>.yaml`
+# Every entry MUST carry a verifiable source URL and the date you verified it.
+# EVALKIT ships NO real provider tariffs: an unverified tariff would silently turn
+# into a fabricated cost. Copy this file, fill real values, keep the source.
+- price_id: anthropic/claude-example/2026-10-01
+  provider: anthropic
+  model_id: claude-example          # exact model id as billed by the provider
+  valid_from: 2026-10-01
+  valid_to: null                    # null = still valid
+  currency: USD
+  input_per_million: 3.00
+  output_per_million: 15.00
+  cached_input_per_million: 0.30
+  cache_creation_per_million: 3.75
+  reasoning_per_million: null       # null = billed as output
+  other_per_unit: {}
+  source: https://example.invalid/pricing   # REPLACE with the provider's pricing page
+  verified_at: 2026-10-01T00:00:00Z
+  rules: "example only — do not import as is"

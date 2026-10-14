@@ -14,8 +14,12 @@ from evalkit.contracts import Profile
 app = typer.Typer(no_args_is_help=True, help="EVALKIT — evaluate, meter and improve AI agents.")
 db_app = typer.Typer(no_args_is_help=True, help="Database maintenance.")
 scenarios_app = typer.Typer(no_args_is_help=True, help="Scenario tooling.")
+budget_app = typer.Typer(no_args_is_help=True, help="Budgets (COST_CONTROLLER).")
+prices_app = typer.Typer(no_args_is_help=True, help="Price registry.")
 app.add_typer(db_app, name="db")
 app.add_typer(scenarios_app, name="scenarios")
+app.add_typer(budget_app, name="budget")
+app.add_typer(prices_app, name="prices")
 
 
 def _data_dir(value: Path | None) -> Path:
@@ -78,13 +82,17 @@ def run(
     dry_run: bool = typer.Option(False, "--dry-run", help="Plan only; no agent call."),
     stop_on_eliminatory: bool = typer.Option(False, help="Stop the campaign on a blocking FAIL."),
     report: bool = typer.Option(True, help="Write JSON + Markdown report after the run."),
+    workers: int = typer.Option(1, "--workers", "-w", min=1, help="Concurrent scenarios."),
+    baseline: str | None = typer.Option(None, help="Baseline campaign id for paired comparison."),
 ) -> None:
     """Plan and execute an evaluation campaign; persist runs, results, audit events, report."""
     from evalkit.core import CampaignRefusedError, CampaignRunner, ScenarioLoadError
     from evalkit.reporting import write_report
 
     repo = _repo(data_dir)
-    runner = CampaignRunner(repo, actor="cli", stop_on_eliminatory=stop_on_eliminatory)
+    runner = CampaignRunner(
+        repo, actor="cli", stop_on_eliminatory=stop_on_eliminatory, max_workers=workers
+    )
     try:
         planned = runner.plan(
             project_dir,
@@ -93,6 +101,7 @@ def run(
             seed=seed,
             repetitions_override=repetitions,
             dry_run=dry_run,
+            baseline_campaign_id=baseline,
         )
     except (CampaignRefusedError, ScenarioLoadError, KeyError) as exc:
         typer.echo(f"REFUSED: {exc}", err=True)
@@ -106,7 +115,16 @@ def run(
     for rule in planned.rules:
         typer.echo(f"  rule: {rule}")
     assert planned.campaign.plan is not None
-    typer.echo(f"  forecast: {planned.campaign.plan.uncertainty}")
+    plan = planned.campaign.plan
+    typer.echo(
+        f"  forecast: tokens={plan.expected_tokens} agent_cost={plan.expected_agent_cost}"
+        f" basis={plan.basis} — {plan.uncertainty}"
+    )
+    if planned.price:
+        typer.echo(
+            f"  price snapshot: {planned.price.price_id}"
+            f" (verified {planned.price.verified_at:%Y-%m-%d})"
+        )
     campaign = asyncio.run(runner.execute(planned))
     typer.echo(
         f"  status: {campaign.status.value}"
@@ -181,3 +199,118 @@ def db_export_audit(
     repo = _repo(data_dir)
     n = repo.export_jsonl(str(out), **({"campaign_id": campaign} if campaign else {}))
     typer.echo(f"{n} events -> {out}")
+
+
+@app.command("compare")
+def compare_cmd(
+    baseline: str = typer.Argument(...),
+    candidate: str = typer.Argument(...),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+    margin: float = typer.Option(0.0, help="Regression margin on the valid-run rate."),
+) -> None:
+    """Paired comparison (by scenario) of two stored campaigns' valid-run rates."""
+    from evalkit.reporting.basic import _equivalence, _scenario_validity
+    from evalkit.stats import paired_comparison
+
+    repo = _repo(data_dir)
+    cand = repo.get_campaign(candidate)
+    base_rates, cand_rates = _scenario_validity(repo, baseline), _scenario_validity(repo, candidate)
+    common = sorted(set(base_rates) & set(cand_rates))
+    if not common:
+        typer.echo("INCONCLUSIVE: no common scenario", err=True)
+        raise typer.Exit(code=3)
+    res = paired_comparison(
+        "valid_run_rate",
+        [base_rates[k] for k in common],
+        [cand_rates[k] for k in common],
+        margin=margin,
+    )
+    for w in _equivalence(repo, cand.model_copy(update={"baseline_campaign_id": baseline})):
+        typer.echo(f"WARNING non-equivalence: {w}")
+    typer.echo(
+        f"{res.conclusion.value}: {res.baseline_estimate:.3f} -> {res.candidate_estimate:.3f}"
+        f" (diff {res.difference:+.3f}); {res.rationale}"
+    )
+    if res.ci:
+        typer.echo(f"  CI {res.ci.level:.0%} [{res.ci.low:.3f}, {res.ci.high:.3f}] {res.ci.method}")
+    typer.echo(f"  effect size ({res.effect_size_method}): {res.effect_size}; p={res.p_value}")
+
+
+@budget_app.command("set")
+def budget_set(
+    scope: str = typer.Argument(
+        ..., help="organization|project|agent|campaign|day|month|evaluation_type"
+    ),
+    scope_ref: str = typer.Argument(..., help="e.g. demo, demo/greeter, 2026-10-14, *"),
+    max_cost: float | None = typer.Option(None),
+    max_tokens: int | None = typer.Option(None),
+    currency: str = typer.Option("USD"),
+    info: float = typer.Option(0.5),
+    warning: float = typer.Option(0.8),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Create or replace a budget (a governance action, audited)."""
+    from evalkit.contracts import Budget, BudgetScope, BudgetThresholds
+    from evalkit.cost_controller import SQLiteCostController
+
+    repo = _repo(data_dir)
+    budget = Budget(
+        budget_id=f"bud_{scope}_{scope_ref}".replace("/", "_"),
+        scope=BudgetScope(scope),
+        scope_ref=scope_ref,
+        max_cost=max_cost,
+        max_tokens=max_tokens,
+        currency=currency,
+        thresholds=BudgetThresholds(info=info, warning=warning),
+    )
+    SQLiteCostController(repo, actor="cli").save_budget(budget)
+    typer.echo(f"budget {budget.budget_id} saved")
+
+
+@budget_app.command("status")
+def budget_status(
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Show budgets with spent (settled + open reservations)."""
+    from evalkit.contracts import Budget
+    from evalkit.cost_controller import SQLiteCostController
+
+    repo = _repo(data_dir)
+    ctl = SQLiteCostController(repo)
+    for row in repo._conn.execute("SELECT json FROM budgets ORDER BY scope, scope_ref"):
+        b = Budget.model_validate_json(row["json"])
+        cost, tokens = ctl.spent(b.budget_id)
+        typer.echo(
+            f"{b.budget_id}: {b.scope.value}/{b.scope_ref} spent {cost:.6f}/{b.max_cost}"
+            f" {b.currency},"
+            f" tokens {tokens}/{b.max_tokens}"
+        )
+
+
+@prices_app.command("import")
+def prices_import(
+    path: Path = typer.Argument(..., exists=True),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Import PriceEntry records from a YAML file (see prices/TEMPLATE.prices.yaml)."""
+    from evalkit.cost_controller import import_prices
+
+    repo = _repo(data_dir)
+    for e in import_prices(repo, path):
+        typer.echo(f"{e.price_id}: {e.provider}/{e.model_id} from {e.valid_from} ({e.source})")
+
+
+@prices_app.command("list")
+def prices_list(data_dir: Path | None = typer.Option(None, "--data-dir")) -> None:
+    """List price registry entries."""
+    from evalkit.contracts import PriceEntry
+
+    repo = _repo(data_dir)
+    for row in repo._conn.execute(
+        "SELECT json FROM prices ORDER BY provider, model_id, valid_from"
+    ):
+        e = PriceEntry.model_validate_json(row["json"])
+        typer.echo(
+            f"{e.price_id}: in={e.input_per_million} out={e.output_per_million} {e.currency}"
+            f" valid {e.valid_from}..{e.valid_to or 'now'} verified {e.verified_at:%Y-%m-%d}"
+        )
