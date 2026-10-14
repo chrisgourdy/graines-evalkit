@@ -5,46 +5,46 @@ Criteria were defined before execution (`docs/ACCEPTANCE_SCENARIOS.md`). Every c
 test runs on **simulated agents**: this report validates EVALKIT's mechanisms, not any
 production agent.
 
-- Generated: 2026-10-14T13:07:26+00:00
-- EVALKIT 0.1.0.dev0, commit `ceb8389`, Python 3.13.16, Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+- Generated: 2026-10-14T14:13:38+00:00
+- EVALKIT 0.1.0.dev0, commit `68adf24`, Python 3.13.16, Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
 - Provider keys present: none (offline run)
-- Test run: 134 test functions (parametrized cases collapsed) — 134 passed, 0 failed, 0 errors, 0 skipped (`docs/evidence/acceptance-junit.xml`)
-- Scenarios: 29 PASS, 0 FAIL, 1 BLOCKED, 0 NOT_RUN
+- Test run: 135 test functions (parametrized cases collapsed) — 134 passed, 1 failed, 0 errors, 0 skipped (`docs/evidence/acceptance-junit.xml`)
+- Scenarios: 28 PASS, 2 FAIL, 0 BLOCKED, 0 NOT_RUN
 
-Verdict: **ACCEPTED** — every executable scenario passed; blocked scenarios are listed with their reason.
+Verdict: **NOT ACCEPTED** — see FAIL / NOT_RUN lines.
 
 | # | Scenario | Result | Mode | Criterion | Evidence |
 |---|---|---|---|---|---|
-| 1 | Compliant agent | **PASS** | simulated | all verifications PASS, scorecard PASS | `tests/test_orchestrator.py::test_compliant_agent_passes` passed (0.08s)<br>`tests/test_scoring_reporting.py::test_scorecard_compliant_agent` passed (0.12s) |
-| 2 | Incorrect agent | **PASS** | simulated | reference evaluator FAIL, scorecard FAIL, ticket opened | `tests/test_orchestrator.py::test_incorrect_agent_fails_with_evidence` passed (0.08s)<br>`tests/test_scoring_reporting.py::test_scorecard_eliminatory_failure_is_independent_of_aggregate` passed (0.10s)<br>`tests/test_improvement.py::test_incident_detection_opens_structured_tickets` passed (0.16s) |
-| 3 | Regression between versions | **PASS** | simulated | paired comparison conclusion FAIL with CI excluding 0 | `tests/test_stats.py::test_paired_comparison_detects_regression_and_improvement` passed (0.00s)<br>`tests/test_scoring_reporting.py::test_scorecard_regression_and_overfitting_signal` passed (0.34s) |
-| 4 | Hallucination detected by reference | **PASS** | simulated | reference lookup FAIL with evidence diff | `tests/test_adapters_evaluators.py::test_deterministic_reference_and_wrong` passed (0.00s)<br>`tests/test_adapters_evaluators.py::test_exact_and_normalized_match` passed (0.00s)<br>`tests/test_orchestrator.py::test_incorrect_agent_fails_with_evidence` passed (0.08s) |
-| 5 | Result variability | **PASS** | simulated | stochastic adapter: dispersion and consistency metrics reported with n and CI | `tests/test_adapters_evaluators.py::test_stochastic_is_seed_reproducible_and_varies` passed (0.02s)<br>`tests/test_orchestrator.py::test_stochastic_campaign_is_seed_reproducible` passed (0.33s)<br>`tests/test_stats.py::test_interval_shapes_and_flags` passed (0.00s) |
-| 6 | Monte-Carlo sampling | **PASS** | simulated | seeded repeated runs reproducible; distribution stored | `tests/test_orchestrator.py::test_stochastic_campaign_is_seed_reproducible` passed (0.33s)<br>`tests/test_stats.py::test_bootstrap_is_deterministic_for_a_seed` passed (0.03s)<br>`tests/test_stats.py::test_montecarlo_helpers` passed (0.00s) |
+| 1 | Compliant agent | **PASS** | simulated | all verifications PASS, scorecard PASS | `tests/test_orchestrator.py::test_compliant_agent_passes` passed (0.10s)<br>`tests/test_scoring_reporting.py::test_scorecard_compliant_agent` passed (0.07s) |
+| 2 | Incorrect agent | **PASS** | simulated | reference evaluator FAIL, scorecard FAIL, ticket opened | `tests/test_orchestrator.py::test_incorrect_agent_fails_with_evidence` passed (0.09s)<br>`tests/test_scoring_reporting.py::test_scorecard_eliminatory_failure_is_independent_of_aggregate` passed (0.07s)<br>`tests/test_improvement.py::test_incident_detection_opens_structured_tickets` passed (0.14s) |
+| 3 | Regression between versions | **PASS** | simulated | paired comparison conclusion FAIL with CI excluding 0 | `tests/test_stats.py::test_paired_comparison_detects_regression_and_improvement` passed (0.00s)<br>`tests/test_scoring_reporting.py::test_scorecard_regression_and_overfitting_signal` passed (0.26s) |
+| 4 | Hallucination detected by reference | **PASS** | simulated | reference lookup FAIL with evidence diff | `tests/test_adapters_evaluators.py::test_deterministic_reference_and_wrong` passed (0.00s)<br>`tests/test_adapters_evaluators.py::test_exact_and_normalized_match` passed (0.00s)<br>`tests/test_orchestrator.py::test_incorrect_agent_fails_with_evidence` passed (0.09s) |
+| 5 | Result variability | **PASS** | simulated | stochastic adapter: dispersion and consistency metrics reported with n and CI | `tests/test_adapters_evaluators.py::test_stochastic_is_seed_reproducible_and_varies` passed (0.03s)<br>`tests/test_orchestrator.py::test_stochastic_campaign_is_seed_reproducible` passed (0.26s)<br>`tests/test_stats.py::test_interval_shapes_and_flags` passed (0.00s) |
+| 6 | Monte-Carlo sampling | **PASS** | simulated | seeded repeated runs reproducible; distribution stored | `tests/test_orchestrator.py::test_stochastic_campaign_is_seed_reproducible` passed (0.26s)<br>`tests/test_stats.py::test_bootstrap_is_deterministic_for_a_seed` passed (0.03s)<br>`tests/test_stats.py::test_montecarlo_helpers` passed (0.00s) |
 | 7 | Statistical comparison | **PASS** | simulated | two versions compared; method, effect size, p, CI recorded | `tests/test_stats.py::test_paired_comparison_detects_regression_and_improvement` passed (0.00s)<br>`tests/test_stats.py::test_effect_sizes_and_holm` passed (0.00s)<br>`tests/test_stats.py::test_proportion_comparison_unpaired_flagged` passed (0.00s) |
 | 8 | Inconclusive result | **PASS** | simulated | under-powered comparison returns INCONCLUSIVE, never PASS/FAIL | `tests/test_stats.py::test_paired_comparison_inconclusive_when_underpowered_or_spanning` passed (0.00s)<br>`tests/test_stats.py::test_no_difference_is_not_equivalence` passed (0.00s) |
 | 9 | Multi-step trajectory capture | **PASS** | simulated | steps with tools, retry, error, terminal state stored | `tests/test_adapters_evaluators.py::test_stochastic_emits_retry_and_error_steps` passed (0.00s)<br>`tests/test_adapters_evaluators.py::test_trace_rules` passed (0.00s)<br>`tests/test_http_adapter.py::test_http_adapter_happy_path_with_usage_and_steps` passed (0.00s) |
 | 10 | Exact accounting of reported tokens | **PASS** | simulated | sum of REPORTED usage equals fixture totals, no double count | `tests/test_token_meter.py::test_anthropic_cache_tokens_are_not_subsets` passed (0.00s)<br>`tests/test_token_meter.py::test_openai_cached_and_reasoning_are_subsets` passed (0.00s)<br>`tests/test_contracts.py::test_billable_total_honours_declared_subsets` passed (0.00s)<br>`tests/test_token_meter.py::test_meter_aggregate_statuses_and_no_unknown_summing` passed (0.02s) |
-| 11 | Flagged token estimation | **PASS** | simulated | adapter without usage → ESTIMATED with method shown in report | `tests/test_token_meter.py::test_estimator_is_flagged` passed (0.00s)<br>`tests/test_contracts.py::test_usage_estimated_requires_method` passed (0.00s)<br>`tests/test_adapters_evaluators.py::test_deterministic_unknown_usage_when_not_reporting` passed (0.00s) |
-| 12 | Cost from versioned tariff | **PASS** | simulated | cost equals usage × frozen price; price_id recorded; unknown model → UNKNOWN | `tests/test_cost_controller.py::test_compute_cost_rules` passed (0.00s)<br>`tests/test_cost_controller.py::test_compute_cost_subsets_not_double_billed` passed (0.00s)<br>`tests/test_cost_controller.py::test_price_registry_import_and_lookup` passed (0.03s) |
-| 13 | Campaign stopped on budget | **PASS** | simulated | cap reached → no new call, status STOPPED_BUDGET, events logged | `tests/test_cost_controller.py::test_paid_campaign_meters_costs_and_stops_on_budget` passed (0.20s)<br>`tests/test_orchestrator.py::test_cost_bearing_adapter_refused_without_budget` passed (0.04s) |
-| 14 | Concurrent budget handling | **PASS** | simulated | N workers cannot jointly exceed cap (test with threads/processes) | `tests/test_cost_controller.py::test_concurrent_reservations_cannot_exceed_cap` passed (0.28s)<br>`tests/test_cost_controller.py::test_workers_do_not_break_audit_chain` passed (0.11s) |
-| 15 | Logging and chronology reconstruction | **PASS** | simulated | full timeline rebuilt from events; hash chain valid | `tests/test_orchestrator.py::test_audit_chronology_reconstructs_campaign` passed (0.08s)<br>`tests/test_storage.py::test_audit_sequence_and_chain` passed (0.02s)<br>`tests/test_storage.py::test_audit_tamper_detected` passed (0.01s) |
-| 16 | Multidimensional scorecard | **PASS** | simulated | per-dimension statuses, eliminatory failures independent of aggregate | `tests/test_scoring_reporting.py::test_scorecard_eliminatory_failure_is_independent_of_aggregate` passed (0.10s)<br>`tests/test_scoring_reporting.py::test_scorecard_coverage_and_required_dimension` passed (0.07s) |
-| 17 | Visual HTML report | **PASS** | simulated | HTML with charts generated from stored data, no LLM | `tests/test_scoring_reporting.py::test_html_report_values_come_from_store` passed (0.21s)<br>`tests/test_scoring_reporting.py::test_dashboard_pages` passed (0.26s) |
-| 18 | Incident detection | **PASS** | simulated | failure pattern → incident event | `tests/test_improvement.py::test_incident_detection_opens_structured_tickets` passed (0.16s) |
-| 19 | Ticket creation | **PASS** | simulated | structured ticket with evidence refs | `tests/test_improvement.py::test_incident_detection_opens_structured_tickets` passed (0.16s)<br>`tests/test_improvement.py::test_ticket_dedup_keeps_history_and_links` passed (0.17s)<br>`tests/test_improvement.py::test_ticket_workflow_refuses_invalid_transitions` passed (0.15s) |
-| 20 | Retrofit cycle | **PASS** | simulated | OBSERVE→…→LEARN executed on a simulated regression, each step audited | `tests/test_improvement.py::test_retrofit_cycle_reverts_simulated_regression` passed (0.30s)<br>`tests/test_improvement.py::test_retrofit_rejects_fix_that_does_not_help` passed (0.37s)<br>`tests/test_improvement.py::test_retrofit_confirm_promotes_learning_on_holdout` passed (0.36s) |
-| 21 | EVALKIT self-evaluation | **PASS** | simulated | self-checks (stats coverage, accounting, budgets, logging) produce a scorecard | `tests/test_improvement.py::test_self_evaluation_passes_and_persists` passed (0.82s)<br>`tests/test_improvement.py::test_self_evaluation_reports_failed_check` passed (0.10s) |
-| 22 | Python package install | **PASS** | simulated | wheel installs in a clean venv; `evalkit version` works | `tests/test_distribution.py::test_wheel_installs_in_clean_venv` passed (4.74s) |
-| 23 | Docker execution | **BLOCKED** | ci only | image runs `evalkit run` on the demo (CI) | no Docker daemon in this environment; CI job `docker` builds and smoke-runs the image once the repository is linked (EK-0030) |
-| 24 | npm integration | **PASS** | simulated | SDK launches a campaign via API and reads results | `tests/test_compat.py::test_cli_api_sdk_produce_the_same_results` passed (3.92s) |
-| 25 | Two distinct projects | **PASS** | simulated | isolation of data and budgets verified | `tests/test_orchestrator.py::test_two_projects_are_isolated` passed (0.10s)<br>`tests/test_cost_controller.py::test_no_budget_blocks_and_token_cap` passed (0.03s) |
-| 26 | Resume after interruption | **PASS** | simulated | killed campaign resumes, reservations released, no duplicate runs; scheduler resumes on its own | `tests/test_autonomy.py::test_resume_completes_interrupted_campaign` passed (0.21s)<br>`tests/test_autonomy.py::test_resume_refuses_completed_or_changed_campaign` passed (0.08s)<br>`tests/test_autonomy.py::test_scheduler_resumes_interrupted_campaign` passed (0.20s) |
-| 27 | Prompt-injection protection | **PASS** | simulated | injected output does not alter criteria/budget; flagged by security evaluator | `tests/test_acceptance.py::test_injection_does_not_alter_criteria_or_budget` passed (0.09s)<br>`tests/test_adapters_evaluators.py::test_injection_guard_flags_markers_and_passes_clean_output` passed (0.00s) |
-| 28 | Test without external provider | **PASS** | whole suite | full default test suite passes offline | 134 passed, 0 failed, 0 errors, 0 skipped; provider keys set: none |
-| 29 | Documentation inconsistency detection | **PASS** | simulated | removing a referenced doc fails the consistency test | `tests/test_docs_consistency.py::test_claude_md_references_exist` passed (0.00s)<br>`tests/test_acceptance.py::test_removing_referenced_doc_is_detected` passed (0.01s) |
-| 30 | Acceptance report with evidence | **PASS** | simulated | report lists each scenario, criterion, result, evidence | `tests/test_acceptance.py::test_report_lists_every_scenario_with_evidence` passed (0.03s)<br>`tests/test_acceptance.py::test_registry_matches_acceptance_scenarios_doc` passed (0.01s) |
+| 11 | Flagged token estimation | **PASS** | simulated | adapter without usage → ESTIMATED with method shown in report | `tests/test_token_meter.py::test_estimator_is_flagged` passed (0.00s)<br>`tests/test_contracts.py::test_usage_estimated_requires_method` passed (0.00s)<br>`tests/test_adapters_evaluators.py::test_deterministic_unknown_usage_when_not_reporting` passed (0.01s) |
+| 12 | Cost from versioned tariff | **PASS** | simulated | cost equals usage × frozen price; price_id recorded; unknown model → UNKNOWN | `tests/test_cost_controller.py::test_compute_cost_rules` passed (0.00s)<br>`tests/test_cost_controller.py::test_compute_cost_subsets_not_double_billed` passed (0.00s)<br>`tests/test_cost_controller.py::test_price_registry_import_and_lookup` passed (0.01s) |
+| 13 | Campaign stopped on budget | **PASS** | simulated | cap reached → no new call, status STOPPED_BUDGET, events logged | `tests/test_cost_controller.py::test_paid_campaign_meters_costs_and_stops_on_budget` passed (0.17s)<br>`tests/test_orchestrator.py::test_cost_bearing_adapter_refused_without_budget` passed (0.02s) |
+| 14 | Concurrent budget handling | **PASS** | simulated | N workers cannot jointly exceed cap (test with threads/processes) | `tests/test_cost_controller.py::test_concurrent_reservations_cannot_exceed_cap` passed (0.15s)<br>`tests/test_cost_controller.py::test_workers_do_not_break_audit_chain` passed (0.14s) |
+| 15 | Logging and chronology reconstruction | **PASS** | simulated | full timeline rebuilt from events; hash chain valid | `tests/test_orchestrator.py::test_audit_chronology_reconstructs_campaign` passed (0.07s)<br>`tests/test_storage.py::test_audit_sequence_and_chain` passed (0.02s)<br>`tests/test_storage.py::test_audit_tamper_detected` passed (0.01s) |
+| 16 | Multidimensional scorecard | **PASS** | simulated | per-dimension statuses, eliminatory failures independent of aggregate | `tests/test_scoring_reporting.py::test_scorecard_eliminatory_failure_is_independent_of_aggregate` passed (0.07s)<br>`tests/test_scoring_reporting.py::test_scorecard_coverage_and_required_dimension` passed (0.06s) |
+| 17 | Visual HTML report | **PASS** | simulated | HTML with charts generated from stored data, no LLM | `tests/test_scoring_reporting.py::test_html_report_values_come_from_store` passed (0.11s)<br>`tests/test_scoring_reporting.py::test_dashboard_pages` passed (0.18s) |
+| 18 | Incident detection | **PASS** | simulated | failure pattern → incident event | `tests/test_improvement.py::test_incident_detection_opens_structured_tickets` passed (0.14s) |
+| 19 | Ticket creation | **PASS** | simulated | structured ticket with evidence refs | `tests/test_improvement.py::test_incident_detection_opens_structured_tickets` passed (0.14s)<br>`tests/test_improvement.py::test_ticket_dedup_keeps_history_and_links` passed (0.15s)<br>`tests/test_improvement.py::test_ticket_workflow_refuses_invalid_transitions` passed (0.14s) |
+| 20 | Retrofit cycle | **PASS** | simulated | OBSERVE→…→LEARN executed on a simulated regression, each step audited | `tests/test_improvement.py::test_retrofit_cycle_reverts_simulated_regression` passed (0.31s)<br>`tests/test_improvement.py::test_retrofit_rejects_fix_that_does_not_help` passed (0.27s)<br>`tests/test_improvement.py::test_retrofit_confirm_promotes_learning_on_holdout` passed (0.38s) |
+| 21 | EVALKIT self-evaluation | **PASS** | simulated | self-checks (stats coverage, accounting, budgets, logging) produce a scorecard | `tests/test_improvement.py::test_self_evaluation_passes_and_persists` passed (0.78s)<br>`tests/test_improvement.py::test_self_evaluation_reports_failed_check` passed (0.08s) |
+| 22 | Python package install | **PASS** | simulated | wheel installs in a clean venv; `evalkit version` works | `tests/test_distribution.py::test_wheel_installs_in_clean_venv` passed (5.43s) |
+| 23 | Docker execution | **PASS** | ci only | image runs `evalkit run` on the demo (CI) | `ci:ci#38576929393:image_built` passed (0.00s)<br>`ci:ci#38576929393:version` passed (0.00s)<br>`ci:ci#38576929393:campaign_completed` passed (0.00s)<br>`ci:ci#38576929393:campaign_persisted` passed (0.00s)<br>`ci:ci#38576929393:db_check` passed (0.00s) |
+| 24 | npm integration | **PASS** | simulated | SDK launches a campaign via API and reads results | `tests/test_compat.py::test_cli_api_sdk_produce_the_same_results` passed (3.72s) |
+| 25 | Two distinct projects | **PASS** | simulated | isolation of data and budgets verified | `tests/test_orchestrator.py::test_two_projects_are_isolated` passed (0.06s)<br>`tests/test_cost_controller.py::test_no_budget_blocks_and_token_cap` passed (0.02s) |
+| 26 | Resume after interruption | **PASS** | simulated | killed campaign resumes, reservations released, no duplicate runs; scheduler resumes on its own | `tests/test_autonomy.py::test_resume_completes_interrupted_campaign` passed (0.17s)<br>`tests/test_autonomy.py::test_resume_refuses_completed_or_changed_campaign` passed (0.07s)<br>`tests/test_autonomy.py::test_scheduler_resumes_interrupted_campaign` passed (0.19s) |
+| 27 | Prompt-injection protection | **PASS** | simulated | injected output does not alter criteria/budget; flagged by security evaluator | `tests/test_acceptance.py::test_injection_does_not_alter_criteria_or_budget` passed (0.08s)<br>`tests/test_adapters_evaluators.py::test_injection_guard_flags_markers_and_passes_clean_output` passed (0.00s) |
+| 28 | Test without external provider | **FAIL** | whole suite | full default test suite passes offline | 134 passed, 1 failed, 0 errors, 0 skipped; provider keys set: none |
+| 29 | Documentation inconsistency detection | **PASS** | simulated | removing a referenced doc fails the consistency test | `tests/test_docs_consistency.py::test_claude_md_references_exist` passed (0.00s)<br>`tests/test_acceptance.py::test_removing_referenced_doc_is_detected` passed (0.00s) |
+| 30 | Acceptance report with evidence | **FAIL** | simulated | report lists each scenario, criterion, result, evidence | `tests/test_acceptance.py::test_report_lists_every_scenario_with_evidence` failed (0.01s)<br>`tests/test_acceptance.py::test_registry_matches_acceptance_scenarios_doc` passed (0.01s) |
 
 ## Details
 
@@ -53,17 +53,17 @@ Verdict: **ACCEPTED** — every executable scenario passed; blocked scenarios ar
 - Criterion: all verifications PASS, scorecard PASS
 - Mode: simulated
 - Detail: 2 covering test(s) passed
-- `tests/test_orchestrator.py::test_compliant_agent_passes`: passed in 0.08s
-- `tests/test_scoring_reporting.py::test_scorecard_compliant_agent`: passed in 0.12s
+- `tests/test_orchestrator.py::test_compliant_agent_passes`: passed in 0.10s
+- `tests/test_scoring_reporting.py::test_scorecard_compliant_agent`: passed in 0.07s
 
 ### 2. Incorrect agent — PASS
 
 - Criterion: reference evaluator FAIL, scorecard FAIL, ticket opened
 - Mode: simulated
 - Detail: 3 covering test(s) passed
-- `tests/test_orchestrator.py::test_incorrect_agent_fails_with_evidence`: passed in 0.08s
-- `tests/test_scoring_reporting.py::test_scorecard_eliminatory_failure_is_independent_of_aggregate`: passed in 0.10s
-- `tests/test_improvement.py::test_incident_detection_opens_structured_tickets`: passed in 0.16s
+- `tests/test_orchestrator.py::test_incorrect_agent_fails_with_evidence`: passed in 0.09s
+- `tests/test_scoring_reporting.py::test_scorecard_eliminatory_failure_is_independent_of_aggregate`: passed in 0.07s
+- `tests/test_improvement.py::test_incident_detection_opens_structured_tickets`: passed in 0.14s
 
 ### 3. Regression between versions — PASS
 
@@ -71,7 +71,7 @@ Verdict: **ACCEPTED** — every executable scenario passed; blocked scenarios ar
 - Mode: simulated
 - Detail: 2 covering test(s) passed
 - `tests/test_stats.py::test_paired_comparison_detects_regression_and_improvement`: passed in 0.00s
-- `tests/test_scoring_reporting.py::test_scorecard_regression_and_overfitting_signal`: passed in 0.34s
+- `tests/test_scoring_reporting.py::test_scorecard_regression_and_overfitting_signal`: passed in 0.26s
 
 ### 4. Hallucination detected by reference — PASS
 
@@ -81,15 +81,15 @@ Verdict: **ACCEPTED** — every executable scenario passed; blocked scenarios ar
 - Detail: 3 covering test(s) passed
 - `tests/test_adapters_evaluators.py::test_deterministic_reference_and_wrong`: passed in 0.00s
 - `tests/test_adapters_evaluators.py::test_exact_and_normalized_match`: passed in 0.00s
-- `tests/test_orchestrator.py::test_incorrect_agent_fails_with_evidence`: passed in 0.08s
+- `tests/test_orchestrator.py::test_incorrect_agent_fails_with_evidence`: passed in 0.09s
 
 ### 5. Result variability — PASS
 
 - Criterion: stochastic adapter: dispersion and consistency metrics reported with n and CI
 - Mode: simulated
 - Detail: 3 covering test(s) passed
-- `tests/test_adapters_evaluators.py::test_stochastic_is_seed_reproducible_and_varies`: passed in 0.02s
-- `tests/test_orchestrator.py::test_stochastic_campaign_is_seed_reproducible`: passed in 0.33s
+- `tests/test_adapters_evaluators.py::test_stochastic_is_seed_reproducible_and_varies`: passed in 0.03s
+- `tests/test_orchestrator.py::test_stochastic_campaign_is_seed_reproducible`: passed in 0.26s
 - `tests/test_stats.py::test_interval_shapes_and_flags`: passed in 0.00s
 
 ### 6. Monte-Carlo sampling — PASS
@@ -97,7 +97,7 @@ Verdict: **ACCEPTED** — every executable scenario passed; blocked scenarios ar
 - Criterion: seeded repeated runs reproducible; distribution stored
 - Mode: simulated
 - Detail: 3 covering test(s) passed
-- `tests/test_orchestrator.py::test_stochastic_campaign_is_seed_reproducible`: passed in 0.33s
+- `tests/test_orchestrator.py::test_stochastic_campaign_is_seed_reproducible`: passed in 0.26s
 - `tests/test_stats.py::test_bootstrap_is_deterministic_for_a_seed`: passed in 0.03s
 - `tests/test_stats.py::test_montecarlo_helpers`: passed in 0.00s
 
@@ -145,7 +145,7 @@ Verdict: **ACCEPTED** — every executable scenario passed; blocked scenarios ar
 - Detail: 3 covering test(s) passed
 - `tests/test_token_meter.py::test_estimator_is_flagged`: passed in 0.00s
 - `tests/test_contracts.py::test_usage_estimated_requires_method`: passed in 0.00s
-- `tests/test_adapters_evaluators.py::test_deterministic_unknown_usage_when_not_reporting`: passed in 0.00s
+- `tests/test_adapters_evaluators.py::test_deterministic_unknown_usage_when_not_reporting`: passed in 0.01s
 
 ### 12. Cost from versioned tariff — PASS
 
@@ -155,30 +155,30 @@ Verdict: **ACCEPTED** — every executable scenario passed; blocked scenarios ar
 - Detail: 3 covering test(s) passed
 - `tests/test_cost_controller.py::test_compute_cost_rules`: passed in 0.00s
 - `tests/test_cost_controller.py::test_compute_cost_subsets_not_double_billed`: passed in 0.00s
-- `tests/test_cost_controller.py::test_price_registry_import_and_lookup`: passed in 0.03s
+- `tests/test_cost_controller.py::test_price_registry_import_and_lookup`: passed in 0.01s
 
 ### 13. Campaign stopped on budget — PASS
 
 - Criterion: cap reached → no new call, status STOPPED_BUDGET, events logged
 - Mode: simulated
 - Detail: 2 covering test(s) passed
-- `tests/test_cost_controller.py::test_paid_campaign_meters_costs_and_stops_on_budget`: passed in 0.20s
-- `tests/test_orchestrator.py::test_cost_bearing_adapter_refused_without_budget`: passed in 0.04s
+- `tests/test_cost_controller.py::test_paid_campaign_meters_costs_and_stops_on_budget`: passed in 0.17s
+- `tests/test_orchestrator.py::test_cost_bearing_adapter_refused_without_budget`: passed in 0.02s
 
 ### 14. Concurrent budget handling — PASS
 
 - Criterion: N workers cannot jointly exceed cap (test with threads/processes)
 - Mode: simulated
 - Detail: 2 covering test(s) passed
-- `tests/test_cost_controller.py::test_concurrent_reservations_cannot_exceed_cap`: passed in 0.28s
-- `tests/test_cost_controller.py::test_workers_do_not_break_audit_chain`: passed in 0.11s
+- `tests/test_cost_controller.py::test_concurrent_reservations_cannot_exceed_cap`: passed in 0.15s
+- `tests/test_cost_controller.py::test_workers_do_not_break_audit_chain`: passed in 0.14s
 
 ### 15. Logging and chronology reconstruction — PASS
 
 - Criterion: full timeline rebuilt from events; hash chain valid
 - Mode: simulated
 - Detail: 3 covering test(s) passed
-- `tests/test_orchestrator.py::test_audit_chronology_reconstructs_campaign`: passed in 0.08s
+- `tests/test_orchestrator.py::test_audit_chronology_reconstructs_campaign`: passed in 0.07s
 - `tests/test_storage.py::test_audit_sequence_and_chain`: passed in 0.02s
 - `tests/test_storage.py::test_audit_tamper_detected`: passed in 0.01s
 
@@ -187,49 +187,49 @@ Verdict: **ACCEPTED** — every executable scenario passed; blocked scenarios ar
 - Criterion: per-dimension statuses, eliminatory failures independent of aggregate
 - Mode: simulated
 - Detail: 2 covering test(s) passed
-- `tests/test_scoring_reporting.py::test_scorecard_eliminatory_failure_is_independent_of_aggregate`: passed in 0.10s
-- `tests/test_scoring_reporting.py::test_scorecard_coverage_and_required_dimension`: passed in 0.07s
+- `tests/test_scoring_reporting.py::test_scorecard_eliminatory_failure_is_independent_of_aggregate`: passed in 0.07s
+- `tests/test_scoring_reporting.py::test_scorecard_coverage_and_required_dimension`: passed in 0.06s
 
 ### 17. Visual HTML report — PASS
 
 - Criterion: HTML with charts generated from stored data, no LLM
 - Mode: simulated
 - Detail: 2 covering test(s) passed
-- `tests/test_scoring_reporting.py::test_html_report_values_come_from_store`: passed in 0.21s
-- `tests/test_scoring_reporting.py::test_dashboard_pages`: passed in 0.26s
+- `tests/test_scoring_reporting.py::test_html_report_values_come_from_store`: passed in 0.11s
+- `tests/test_scoring_reporting.py::test_dashboard_pages`: passed in 0.18s
 
 ### 18. Incident detection — PASS
 
 - Criterion: failure pattern → incident event
 - Mode: simulated
 - Detail: 1 covering test(s) passed
-- `tests/test_improvement.py::test_incident_detection_opens_structured_tickets`: passed in 0.16s
+- `tests/test_improvement.py::test_incident_detection_opens_structured_tickets`: passed in 0.14s
 
 ### 19. Ticket creation — PASS
 
 - Criterion: structured ticket with evidence refs
 - Mode: simulated
 - Detail: 3 covering test(s) passed
-- `tests/test_improvement.py::test_incident_detection_opens_structured_tickets`: passed in 0.16s
-- `tests/test_improvement.py::test_ticket_dedup_keeps_history_and_links`: passed in 0.17s
-- `tests/test_improvement.py::test_ticket_workflow_refuses_invalid_transitions`: passed in 0.15s
+- `tests/test_improvement.py::test_incident_detection_opens_structured_tickets`: passed in 0.14s
+- `tests/test_improvement.py::test_ticket_dedup_keeps_history_and_links`: passed in 0.15s
+- `tests/test_improvement.py::test_ticket_workflow_refuses_invalid_transitions`: passed in 0.14s
 
 ### 20. Retrofit cycle — PASS
 
 - Criterion: OBSERVE→…→LEARN executed on a simulated regression, each step audited
 - Mode: simulated
 - Detail: 3 covering test(s) passed
-- `tests/test_improvement.py::test_retrofit_cycle_reverts_simulated_regression`: passed in 0.30s
-- `tests/test_improvement.py::test_retrofit_rejects_fix_that_does_not_help`: passed in 0.37s
-- `tests/test_improvement.py::test_retrofit_confirm_promotes_learning_on_holdout`: passed in 0.36s
+- `tests/test_improvement.py::test_retrofit_cycle_reverts_simulated_regression`: passed in 0.31s
+- `tests/test_improvement.py::test_retrofit_rejects_fix_that_does_not_help`: passed in 0.27s
+- `tests/test_improvement.py::test_retrofit_confirm_promotes_learning_on_holdout`: passed in 0.38s
 
 ### 21. EVALKIT self-evaluation — PASS
 
 - Criterion: self-checks (stats coverage, accounting, budgets, logging) produce a scorecard
 - Mode: simulated
 - Detail: 2 covering test(s) passed
-- `tests/test_improvement.py::test_self_evaluation_passes_and_persists`: passed in 0.82s
-- `tests/test_improvement.py::test_self_evaluation_reports_failed_check`: passed in 0.10s
+- `tests/test_improvement.py::test_self_evaluation_passes_and_persists`: passed in 0.78s
+- `tests/test_improvement.py::test_self_evaluation_reports_failed_check`: passed in 0.08s
 
 ### 22. Python package install — PASS
 
@@ -237,13 +237,19 @@ Verdict: **ACCEPTED** — every executable scenario passed; blocked scenarios ar
 - Mode: simulated
 - Note: marked integration_local (builds the wheel, creates a venv); also CI job `wheel`
 - Detail: 1 covering test(s) passed
-- `tests/test_distribution.py::test_wheel_installs_in_clean_venv`: passed in 4.74s
+- `tests/test_distribution.py::test_wheel_installs_in_clean_venv`: passed in 5.43s
 
-### 23. Docker execution — BLOCKED
+### 23. Docker execution — PASS
 
 - Criterion: image runs `evalkit run` on the demo (CI)
 - Mode: ci only
-- Detail: no Docker daemon in this environment; CI job `docker` builds and smoke-runs the image once the repository is linked (EK-0030)
+- Note: judged on docs/evidence/ci-docker.json, written by the CI job `docker` (run url, image digest, checks)
+- Detail: CI run https://github.com/chrisgourdy/graines-evalkit/actions/runs/38576929393 on commit 7eb20b37c46c74f6afaf978a76db5fe51b6cce7f, image sha256:1191d5a9fdc9357d5fdbd4fff9fd2f94cdf342fd602c55bce6a9f226007a3a5d, campaign cmp_3208284b76dc4db2bd4abc166174e711 (COMPLETED); evidence file docs/evidence/ci-docker.json
+- `ci:ci#38576929393:image_built`: passed in 0.00s
+- `ci:ci#38576929393:version`: passed in 0.00s
+- `ci:ci#38576929393:campaign_completed`: passed in 0.00s
+- `ci:ci#38576929393:campaign_persisted`: passed in 0.00s
+- `ci:ci#38576929393:db_check`: passed in 0.00s
 
 ### 24. npm integration — PASS
 
@@ -251,24 +257,24 @@ Verdict: **ACCEPTED** — every executable scenario passed; blocked scenarios ar
 - Mode: simulated
 - Note: real uvicorn server + node SDK client in-process; marked integration_local
 - Detail: 1 covering test(s) passed
-- `tests/test_compat.py::test_cli_api_sdk_produce_the_same_results`: passed in 3.92s
+- `tests/test_compat.py::test_cli_api_sdk_produce_the_same_results`: passed in 3.72s
 
 ### 25. Two distinct projects — PASS
 
 - Criterion: isolation of data and budgets verified
 - Mode: simulated
 - Detail: 2 covering test(s) passed
-- `tests/test_orchestrator.py::test_two_projects_are_isolated`: passed in 0.10s
-- `tests/test_cost_controller.py::test_no_budget_blocks_and_token_cap`: passed in 0.03s
+- `tests/test_orchestrator.py::test_two_projects_are_isolated`: passed in 0.06s
+- `tests/test_cost_controller.py::test_no_budget_blocks_and_token_cap`: passed in 0.02s
 
 ### 26. Resume after interruption — PASS
 
 - Criterion: killed campaign resumes, reservations released, no duplicate runs; scheduler resumes on its own
 - Mode: simulated
 - Detail: 3 covering test(s) passed
-- `tests/test_autonomy.py::test_resume_completes_interrupted_campaign`: passed in 0.21s
-- `tests/test_autonomy.py::test_resume_refuses_completed_or_changed_campaign`: passed in 0.08s
-- `tests/test_autonomy.py::test_scheduler_resumes_interrupted_campaign`: passed in 0.20s
+- `tests/test_autonomy.py::test_resume_completes_interrupted_campaign`: passed in 0.17s
+- `tests/test_autonomy.py::test_resume_refuses_completed_or_changed_campaign`: passed in 0.07s
+- `tests/test_autonomy.py::test_scheduler_resumes_interrupted_campaign`: passed in 0.19s
 
 ### 27. Prompt-injection protection — PASS
 
@@ -276,15 +282,15 @@ Verdict: **ACCEPTED** — every executable scenario passed; blocked scenarios ar
 - Mode: simulated
 - Note: the guard is a heuristic marker scan; it is evidence, never an action
 - Detail: 2 covering test(s) passed
-- `tests/test_acceptance.py::test_injection_does_not_alter_criteria_or_budget`: passed in 0.09s
+- `tests/test_acceptance.py::test_injection_does_not_alter_criteria_or_budget`: passed in 0.08s
 - `tests/test_adapters_evaluators.py::test_injection_guard_flags_markers_and_passes_clean_output`: passed in 0.00s
 
-### 28. Test without external provider — PASS
+### 28. Test without external provider — FAIL
 
 - Criterion: full default test suite passes offline
 - Mode: whole suite
 - Note: evidence = the whole JUnit run of this report: zero failures, no provider key set
-- Detail: 134 passed, 0 failed, 0 errors, 0 skipped; provider keys set: none
+- Detail: 134 passed, 1 failed, 0 errors, 0 skipped; provider keys set: none
 
 ### 29. Documentation inconsistency detection — PASS
 
@@ -292,12 +298,12 @@ Verdict: **ACCEPTED** — every executable scenario passed; blocked scenarios ar
 - Mode: simulated
 - Detail: 2 covering test(s) passed
 - `tests/test_docs_consistency.py::test_claude_md_references_exist`: passed in 0.00s
-- `tests/test_acceptance.py::test_removing_referenced_doc_is_detected`: passed in 0.01s
+- `tests/test_acceptance.py::test_removing_referenced_doc_is_detected`: passed in 0.00s
 
-### 30. Acceptance report with evidence — PASS
+### 30. Acceptance report with evidence — FAIL
 
 - Criterion: report lists each scenario, criterion, result, evidence
 - Mode: simulated
-- Detail: 2 covering test(s) passed
-- `tests/test_acceptance.py::test_report_lists_every_scenario_with_evidence`: passed in 0.03s
+- Detail: tests/test_acceptance.py::test_report_lists_every_scenario_with_evidence: assert 0 == 1
+- `tests/test_acceptance.py::test_report_lists_every_scenario_with_evidence`: failed in 0.01s — assert 0 == 1
 - `tests/test_acceptance.py::test_registry_matches_acceptance_scenarios_doc`: passed in 0.01s

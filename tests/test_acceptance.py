@@ -123,7 +123,9 @@ def test_report_lists_every_scenario_with_evidence(tmp_path: Path) -> None:
     junit = _junit(tmp_path / "junit.xml", all_tests)
     outcomes = parse_junit(junit)
     assert set(outcomes) == set(all_tests)
-    report = build_report(outcomes, junit_path=junit, root=ROOT)
+    no_ci = tmp_path / "no-ci-evidence"  # a checkout without CI evidence: Docker stays BLOCKED
+    no_ci.mkdir()
+    report = build_report(outcomes, junit_path=junit, root=no_ci)
     assert len(report.results) == 30
     assert report.counts["FAIL"] == 0 and report.counts["NOT_RUN"] == 0
     assert report.counts["BLOCKED"] == 1  # Docker, with its reason
@@ -137,7 +139,7 @@ def test_report_lists_every_scenario_with_evidence(tmp_path: Path) -> None:
     # a failing covering test makes its scenario FAIL and the verdict NOT ACCEPTED — never hidden
     all_tests["tests/test_stats.py::test_effect_sizes_and_holm"] = "failed"
     report2 = build_report(
-        parse_junit(_junit(tmp_path / "j2.xml", all_tests)), junit_path=junit, root=ROOT
+        parse_junit(_junit(tmp_path / "j2.xml", all_tests)), junit_path=junit, root=no_ci
     )
     failing = [r for r in report2.results if r.result == "FAIL"]
     assert [r.scenario.number for r in failing] == [7, 28] and not report2.accepted
@@ -145,7 +147,7 @@ def test_report_lists_every_scenario_with_evidence(tmp_path: Path) -> None:
     # a missing covering test is NOT_RUN, not PASS
     del all_tests["tests/test_improvement.py::test_self_evaluation_passes_and_persists"]
     report3 = build_report(
-        parse_junit(_junit(tmp_path / "j3.xml", all_tests)), junit_path=junit, root=ROOT
+        parse_junit(_junit(tmp_path / "j3.xml", all_tests)), junit_path=junit, root=no_ci
     )
     assert next(r for r in report3.results if r.scenario.number == 21).result == "NOT_RUN"
 

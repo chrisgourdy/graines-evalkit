@@ -41,6 +41,6 @@ status · title · notes.
 | EK-0037 | 2 | CLOSED | Phase 8: acceptance report `docs/ACCEPTANCE_REPORT.md` generated from test evidence (ids, logs, paths) | done 2026-10-14 (`acceptance/`, `evalkit acceptance run`) |
 | EK-0038 | 2 | OPEN | Release 0.1.0: version bump + tag + first CI run + publication — each step on explicit authorisation (level 4) | human |
 | EK-0034 | 4 | OPEN | Diagnosis hypotheses from an LLM (optional, provider required, clearly labelled as such) | V2 |
-| EK-0030 | 2 | OPEN | Run the CI docker job once the GitHub repo exists; record image digest in STATUS | blocked by EK-0005 |
+| EK-0030 | 2 | CLOSED | Run the CI docker job once the GitHub repo exists; record image digest in STATUS | done 2026-10-14, run 38576929393, digest in `docs/evidence/ci-docker.json` |
 | EK-0031 | 3 | OPEN | API: pagination and filters on list endpoints; rate limiting | V1.1 |
 | EK-0027 | 3 | OPEN | Scorecard: suppress 'underpowered' warning for deterministic adapters at n=1 when the dimension is fully deterministic | currently honest but noisy |

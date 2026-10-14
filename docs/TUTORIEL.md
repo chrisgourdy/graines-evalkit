@@ -414,10 +414,18 @@ identique, mot pour mot, aux critères de `docs/ACCEPTANCE_SCENARIOS.md` et que 
 cité existe. La checklist de release est dans `docs/RELEASE_CHECKLIST.md` : rien n'est publié
 sans ton feu vert explicite, poste par poste.
 
+Le scénario 23 (exécution Docker) est jugé sur `docs/evidence/ci-docker.json`, écrit par le
+job `docker` de la CI GitHub (dépôt privé `chrisgourdy/graines-evalkit`) : construction
+multi-arch, puis conteneurs successifs sur un même volume (campagne `worker`, `campaigns`,
+`scorecard`, `report`, `db check`, `self-check`), sept contrôles booléens, URL du run et
+digest d'image. Fichier absent ⇒ BLOCKED ; un contrôle faux ⇒ FAIL. Le volume `/data`
+complet (base SQLite, rapports) est conservé dans l'artefact `docker-evidence` du run.
+
 ## 13. Ce qui n'existe pas encore
 
-Exécution réelle du planificateur sur un cron ou un conteneur et image Docker construite
-(câblage présent, CI jamais exécutée faute de dépôt distant), expressions cron et
+Exécution réelle du planificateur sur un cron ou un conteneur longue durée (le smoke test
+CI n'exerce que le mode `worker`), image publiée sur un registre (construite et testée en
+CI, jamais poussée), expressions cron et
 notifications (EK-0035/0036), hypothèses de diagnostic par LLM (EK-0034), adaptateurs
 Anthropic/OpenAI natifs, pont OpenTelemetry, tarifs réels, publication PyPI/npm.
 `docs/STATUS.md` fait foi, ligne par ligne.

@@ -71,14 +71,20 @@ Full purpose and the three fundamental questions: `README.md`.
   scenarios → covering tests, JUnit evidence, PASS/FAIL/BLOCKED/NOT_RUN, `evalkit acceptance
   list|run` → `docs/ACCEPTANCE_REPORT.md` (29 PASS, 1 BLOCKED: Docker), `injection_guard`
   evaluator + demo agent `greeter-guarded`, wheel-install test, `docs/RELEASE_CHECKLIST.md`;
-  170 tests.
-- **What does not exist yet:** Docker image actually built (CI only, repo not yet linked),
-  a scheduler run on a real cron/container (wiring only), cron expressions and notification
+  172 tests. Private GitHub repository `chrisgourdy/graines-evalkit` (no remote configured in
+  the cloud workspace: pushes are done by Christophe from the Mac); CI run #1 green
+  (python ×3, acceptance, wheel, sdk, docker multi-arch + container smoke test, sbom);
+  Docker evidence `docs/evidence/ci-docker.json` lifts scenario 23 → acceptance 30/30 PASS.
+- **What does not exist yet:** a published image or package (the CI image is built and
+  smoke-tested but never pushed to a registry), a scheduler run on a real cron/container
+  (wiring only; the CI smoke test uses `worker` mode), cron expressions and notification
   hooks (EK-0035/0036), LLM-based diagnosis
   (hypotheses are rule-based), OTel bridge, real provider adapters, real tariffs (registry
   ships only a synthetic `sim` tariff and a template). Nothing is published anywhere.
 - **Environment constraints (Phase 0 audit):** no Docker daemon in the development
-  environment (image build/test happens in CI only); no LLM API key (all default tests use
+  environment (image build/test happens in CI only); the cloud session's proxy only reaches
+  GitHub repositories declared as session sources — this repository is not, so git push and
+  Actions reads go through Christophe (push from the Mac, run pages read in his browser); no LLM API key (all default tests use
   simulated agents); `evalkit` name taken on PyPI/npm → `graines-evalkit` / `@graines/evalkit`.
 - **Detailed status and evidence:** `docs/STATUS.md`.
 
@@ -217,9 +223,8 @@ section of this index is absent.
 
 ## 10. Next actions
 
-V1 is feature-complete on simulated agents. Remaining steps are human decisions
-(`docs/RELEASE_CHECKLIST.md`, EK-0038): link the GitHub repository and let CI run once
-(unblocks scenario 23 and the Docker image), bump `0.1.0.dev0` → `0.1.0` and tag, then
-publish — each on explicit authorisation. Product work after that: `docs/ROADMAP.md` V1.1
+V1 is feature-complete on simulated agents; CI ran green and the acceptance is 30/30 PASS.
+Remaining steps are human decisions (`docs/RELEASE_CHECKLIST.md`, EK-0038): bump
+`0.1.0.dev0` → `0.1.0` and tag, then publish — each on explicit authorisation. Product work after that: `docs/ROADMAP.md` V1.1
 (real provider adapters once a key exists, real tariffs, OTel bridge, cron expressions,
 notifications).
