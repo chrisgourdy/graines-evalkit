@@ -21,3 +21,5 @@ data/
 *.sqlite3
 reports/_generated/
 .DS_Store
+_sync/
+.write_test

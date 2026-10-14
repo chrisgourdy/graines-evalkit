@@ -6,13 +6,19 @@ status · title · notes.
 
 | Id | P | Status | Title | Notes |
 |---|---|---|---|---|
-| EK-0001 | 1 | OPEN | Phase 2 — storage SQLite/JSONL/artifacts with migrations and locks | needed by every other module |
-| EK-0002 | 1 | OPEN | Phase 2 — sim.deterministic and sim.stochastic adapters | tests without any provider |
-| EK-0003 | 1 | OPEN | Phase 2 — deterministic evaluators (exact, normalised, json_schema, regex, required_keys, numeric_tolerance, trace rules) | |
-| EK-0004 | 1 | OPEN | Phase 2 — orchestrator + `evalkit run` + JSON/Markdown report | end-to-end MVP |
+| EK-0001 | 1 | CLOSED | Phase 2 — storage SQLite/JSONL/artifacts with migrations and locks | needed by every other module |
+| EK-0002 | 1 | CLOSED | Phase 2 — sim.deterministic and sim.stochastic adapters | tests without any provider |
+| EK-0003 | 1 | CLOSED | Phase 2 — deterministic evaluators (exact, normalised, json_schema, regex, required_keys, numeric_tolerance, trace rules) | |
+| EK-0004 | 1 | CLOSED | Phase 2 — orchestrator + `evalkit run` + JSON/Markdown report | end-to-end MVP |
 | EK-0005 | 2 | OPEN | Link GitHub account and create remote repo (needs explicit authorisation) | unblocks CI and Docker builds |
 | EK-0006 | 2 | OPEN | Decide licence before any external release | currently Proprietary |
 | EK-0007 | 2 | OPEN | Provider usage conventions catalogue with real payload fixtures (Anthropic, OpenAI) | subsets declaration |
 | EK-0008 | 3 | OPEN | Chart library decision (Chart.js vs ECharts) with ADR | Phase 4 |
 | EK-0009 | 3 | OPEN | Obtain API keys for separate real-integration test runs | adapters stay NT otherwise |
 | EK-0010 | 3 | OPEN | SBOM generation (CycloneDX) in release pipeline | |
+| EK-0011 | 1 | OPEN | Phase 3 — statistical engine (Wilson, Clopper-Pearson, BCa bootstrap, paired comparison, Holm, INCONCLUSIVE rules, seeded property tests) | |
+| EK-0012 | 1 | OPEN | Phase 3 — TOKEN_METER usage table (migration 0002), attribution, provider subset conventions | |
+| EK-0013 | 1 | OPEN | Phase 3 — COST_CONTROLLER: price registry seed, forecast from history, atomic reservations, caps, concurrency test | unblocks cost-bearing adapters |
+| EK-0014 | 2 | OPEN | Orchestrator concurrency (bounded workers) once reservations exist | sequential in Phase 2 |
+| EK-0015 | 2 | OPEN | Campaign resume (`campaign resume`) using persisted runs | Phase 7, groundwork exists (runs saved progressively) |
+| EK-0016 | 3 | OPEN | `http.json` adapter (httpx, optional dep) | moved from Phase 2 |

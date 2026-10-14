@@ -8,15 +8,24 @@ See `README.md` quick start. Production: `pip install graines-evalkit[api]` or t
 image (`docs/DISTRIBUTION.md`).
 
 ## Configuration
-`EVALKIT_DATA_DIR` (default `./data`), `EVALKIT_CONFIG` (YAML), provider keys via
-`ANTHROPIC_API_KEY` / `OPENAI_API_KEY` or a secrets file referenced by config. (Phase 2)
+`EVALKIT_DATA_DIR` (default `./data`, or `--data-dir`). A project is a directory holding
+`evalkit.yaml` (project id, agents → adapter/version/params) and a `scenarios/` tree.
+Provider keys (Phase 3+) come from environment variables, never from files in the repo.
 
 ## Run a campaign
-`evalkit run --project <id> --agent <id> --profile STANDARD [--dry-run]`. (Phase 2)
+`evalkit scenarios validate <project_dir>` then
+`evalkit run <project_dir> --agent <id> --profile quick|standard|deep|extended [--seed N]
+[--repetitions N] [--dry-run] [--stop-on-eliminatory]`. Reports land in
+`<data>/reports/<campaign_id>.{json,md}`; `evalkit report <campaign_id>` regenerates them;
+`evalkit campaigns --project <id>` lists campaigns.
+
+## Audit
+`evalkit db check` verifies the audit hash chain and SQLite integrity;
+`evalkit db export-audit out.jsonl [--campaign <id>]` exports events.
 
 ## Backup
-Stop writers, copy `data/evalkit.db` (SQLite online backup API via `evalkit db backup`),
-`data/artifacts/`, `data/audit/*.jsonl`. (Phase 3)
+Stop writers, copy `data/evalkit.db` (+ `-wal`/`-shm` if present, or run `evalkit db backup`
+once available — Phase 3), `data/artifacts/`, `data/reports/`. (Phase 3)
 
 ## Restore
 `evalkit db restore <backup>`; verify with `evalkit db check` (integrity + hash chain). (Phase 3)

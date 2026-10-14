@@ -14,13 +14,19 @@ Full purpose and the three fundamental questions: `README.md`.
 
 ## 2. Project state
 
-- **Phase:** 1 — Architecture (complete) → next: Phase 2 — MVP end-to-end cycle.
+- **Phase:** 2 — MVP end-to-end cycle (complete) → next: Phase 3 — measurement & economics.
 - **Version:** 0.1.0.dev0 — contracts 1.0.0.
-- **What exists:** package skeleton, public contracts (`src/evalkit/contracts/`), module ports
-  (`*/interfaces.py`), CLI stub (`evalkit version`, `evalkit export-schemas`), docs, ADRs,
-  documentation-consistency test, contract tests.
-- **What does not exist yet:** any execution path, storage implementation, evaluators,
-  statistics, reports, Docker build, npm SDK. Do not describe these as working.
+- **What exists:** public contracts (`src/evalkit/contracts/`); SQLite storage with numbered
+  migrations, transactions, content-addressed artifacts and an append-only hash-chained audit
+  table (`storage/sqlite.py`); project/scenario loader (`core/project.py`); adapters
+  `sim.deterministic`, `sim.stochastic`, `python.callable`; eight deterministic evaluators;
+  campaign orchestrator with profiles, DRY_RUN and eliminatory stop (`core/orchestrator.py`);
+  JSON + Markdown campaign report (`reporting/basic.py`); CLI `run`, `report`, `campaigns`,
+  `scenarios validate`, `db migrate|check|export-audit`; demo project
+  `scenarios/examples/demo`; 86 tests, all provider-free.
+- **What does not exist yet:** statistics / confidence intervals, TOKEN_METER aggregation
+  tables, COST_CONTROLLER (cost-bearing adapters are refused), scorecards, HTML report,
+  Docker build, npm SDK, backlog/retrofit runtime, scheduler. Do not describe these as working.
 - **Environment constraints (Phase 0 audit):** no Docker daemon in the development
   environment (image build/test happens in CI only); no LLM API key (all default tests use
   simulated agents); `evalkit` name taken on PyPI/npm → `graines-evalkit` / `@graines/evalkit`.
@@ -33,7 +39,7 @@ Responsibilities → packages under `src/evalkit/`:
 
 | Responsibility | Package | Port |
 |---|---|---|
-| CORE | `core/` | — (orchestrator, Phase 2) |
+| CORE | `core/` | `CampaignRunner` (plan → execute), project loader |
 | ADAPTERS | `adapters/` | `AgentAdapter` |
 | EVALUATORS | `evaluators/` | `Evaluator`, `EvaluatorRegistry` |
 | STATISTICAL_ENGINE | `stats/` | result contracts |
@@ -42,10 +48,10 @@ Responsibilities → packages under `src/evalkit/`:
 | COST_CONTROLLER | `cost_controller/` | `CostController` |
 | SCORING_ENGINE | `scoring/` | Phase 4 |
 | REPORTING | `reporting/` | Phase 4 |
-| AUDIT_TRAIL | `audit/` | `AuditTrail` |
+| AUDIT_TRAIL | `audit/` | `AuditTrail`, `make_event` (redaction) |
 | FEEDBACK / IMPROVEMENT | `feedback/`, `improvement/` | Phase 6 |
 | SCHEDULER / GOVERNANCE | `scheduler/`, `governance/` | `PolicyEngine` |
-| STORAGE | `storage/` | `Repository` |
+| STORAGE | `storage/` | `Repository` → `SQLiteRepository` (also implements `AuditTrail`) |
 | DISTRIBUTION | `pyproject.toml`, `docker/`, `sdk/typescript/` | Phase 5 |
 
 Decisions: `docs/adr/` (ADR-0001 … ADR-0006). Add an ADR for any structural choice.
@@ -77,6 +83,10 @@ uv venv .venv --python 3.13 && uv pip install -e ".[api]" --group dev
 .venv/bin/pytest
 .venv/bin/evalkit version
 .venv/bin/evalkit export-schemas --out schemas
+.venv/bin/evalkit scenarios validate scenarios/examples/demo
+.venv/bin/evalkit run scenarios/examples/demo --agent greeter --data-dir data -p standard
+.venv/bin/evalkit run scenarios/examples/demo --agent greeter-flaky -p deep --seed 42 --data-dir data
+.venv/bin/evalkit db check --data-dir data
 ```
 
 ## 7. Documentation map (canonical files)
@@ -130,5 +140,7 @@ section of this index is absent.
 
 ## 10. Next actions
 
-See `docs/ROADMAP.md` → Phase 2: storage (SQLite + JSONL), simulated adapters (deterministic +
-stochastic), deterministic evaluators, orchestrator, first persisted report.
+See `docs/ROADMAP.md` → Phase 3: statistical engine (Wilson/bootstrap/paired comparison,
+Monte-Carlo sampling, INCONCLUSIVE rules), TOKEN_METER usage table + attribution + provider
+conventions, COST_CONTROLLER (price registry, forecast, atomic reservations, caps, concurrency
+test), audit OTel bridge (optional). Migration 0002 introduces the usage/reservation tables.

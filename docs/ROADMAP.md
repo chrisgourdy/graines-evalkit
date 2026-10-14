@@ -8,7 +8,7 @@ Boundaries may move when tests or constraints justify it; the goal is a reliable
 |---|---|---|
 | 0 Audit | environment audit, scoping decisions | recorded (done 2026-10-13) |
 | 1 Architecture | repo, CLAUDE.md, contracts, ports, docs, ADRs | ruff + mypy strict + pytest green; docs consistency test green; first commit (done) |
-| 2 MVP | storage (SQLite/JSONL/artifacts), sim adapters, deterministic evaluators, orchestrator, CLI `run`, first persisted JSON/Markdown report | `evalkit run` on an example project produces a stored campaign, runs, results and a report, with tests |
+| 2 MVP | storage (SQLite/JSONL/artifacts), sim adapters, deterministic evaluators, orchestrator, CLI `run`, first persisted JSON/Markdown report | `evalkit run` on an example project produces a stored campaign, runs, results and a report, with tests (done 2026-10-14) |
 | 3 Measurement & economics | stats (intervals, paired comparison, bootstrap, Monte-Carlo), TOKEN_METER, COST_CONTROLLER (registry, forecast, reservations, caps, concurrency), AUDIT_TRAIL runtime | statistical property tests; concurrent-budget test; chronology reconstruction test |
 | 4 Scoring & visualisation | scorecards, validity controls, HTML report with charts, dashboard pages | report rendered from stored data only; chart library choice recorded (ADR) |
 | 5 Distribution | wheel, Dockerfile + compose (CI build), npm SDK, compatibility tests, CI pipeline | wheel installs in a clean venv; image builds in CI for amd64/arm64; SDK tests pass |

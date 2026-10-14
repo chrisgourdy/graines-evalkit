@@ -1,0 +1,19 @@
+# HOLDOUT scenario: never used to fix the agent; only DEEP/EXTENDED profiles run it.
+scenario_id: demo.greet.h01
+version: 1.0.0
+project_id: demo
+agent_id: greeter
+name: Holdout greeting
+description: Protected reference used only for evaluation.
+objective: Detect overfitting to the development set.
+inputs: { name: Linus }
+expected_behavior: Returns 'Hello Linus'.
+reference_outputs: { text: Hello Linus }
+verifications:
+  - evaluator: normalized_match
+    dimension: accuracy
+    params: { field: text }
+    blocking: true
+criticality: HIGH
+dataset: HOLDOUT
+provenance: { author: cgourdy@graines.ai, created_at: 2026-10-14T00:00:00Z, origin: handwritten }

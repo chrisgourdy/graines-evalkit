@@ -1,0 +1,42 @@
+# Example scenario — validated against schemas/Scenario.schema.json (Phase 2 loader).
+scenario_id: demo.greeter-wrong.greet.001
+version: 1.0.0
+project_id: demo
+agent_id: greeter-wrong
+name: Greets by name
+description: The agent must greet the user by the provided name, nothing else.
+objective: Basic instruction following and format compliance.
+inputs:
+  name: Ada
+context: {}
+expected_behavior: Returns exactly "Hello Ada".
+constraints:
+  - No additional text.
+  - Respond in English.
+reference_outputs:
+  text: Hello Ada
+sources_of_truth:
+  - scenario author
+verifications:
+  - evaluator: exact_match
+    dimension: accuracy
+    params: { field: text }
+    blocking: true
+  - evaluator: max_length
+    dimension: constraints
+    params: { max_chars: 32 }
+criticality: HIGH
+repetitions: 3
+budget:
+  max_tokens: 500
+  max_cost: 0.01
+  currency: USD
+success:
+  min_pass_rate: 1.0
+  required_dimensions: [accuracy]
+dataset: DEVELOPMENT
+tags: [smoke]
+provenance:
+  author: cgourdy@graines.ai
+  created_at: 2026-10-13T00:00:00Z
+  origin: handwritten

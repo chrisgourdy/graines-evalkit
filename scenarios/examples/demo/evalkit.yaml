@@ -1,0 +1,17 @@
+# Demo project — simulated agents only (never a production validation).
+project_id: demo
+name: EVALKIT demo project
+scenarios_dir: scenarios
+agents:
+  greeter:
+    adapter: sim.deterministic
+    version: "1.0.0"
+    params: { behavior: reference, tools: [lookup_name] }
+  greeter-wrong:
+    adapter: sim.deterministic
+    version: "1.1.0-broken"
+    params: { behavior: wrong }
+  greeter-flaky:
+    adapter: sim.stochastic
+    version: "1.2.0"
+    params: { p_wrong: 0.3, p_error: 0.1, p_retry: 0.2, latency_ms: 40 }
