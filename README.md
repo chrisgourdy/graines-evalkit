@@ -14,16 +14,24 @@ One canonical Python engine, three distributions (PyPI `graines-evalkit`, Docker
 
 ## Status
 
-Pre-alpha — Phase 1 (architecture) complete, Phase 2 (MVP end-to-end cycle) in progress.
+Pre-alpha — Phases 1 to 5 complete (architecture, MVP cycle, statistics + metering + cost
+control, scoring + visual reports, distribution). Phase 6 (continuous improvement) is next.
 See [docs/ROADMAP.md](docs/ROADMAP.md) and [CLAUDE.md](CLAUDE.md) for the current state.
 Nothing in this repository is to be considered operational until the acceptance report
 (`docs/ACCEPTANCE_REPORT.md`) says so, with evidence.
+
+## Tutoriel (français)
+
+Le guide d'utilisation complet — installation, description d'un projet et de ses scénarios,
+profils de campagne, tarifs et budgets, lecture des scorecards, API et SDK, Docker, limites
+actuelles — est dans **[docs/TUTORIEL.md](docs/TUTORIEL.md)**. Il reflète l'état vérifié du
+projet (`docs/STATUS.md`) et est mis à jour à chaque phase.
 
 ## Quick start (developer)
 
 ```bash
 uv venv .venv --python 3.13 && source .venv/bin/activate
-uv pip install -e ".[api]" --group dev
+uv pip install -e ".[api,http]" --group dev
 evalkit version
 pytest
 ```
@@ -44,6 +52,7 @@ sdk/typescript/       npm SDK (Phase 5)
 ## Documentation
 
 Start at [CLAUDE.md](CLAUDE.md) — the index every contributor (human or agent) reads first.
+Users start at [docs/TUTORIEL.md](docs/TUTORIEL.md) (in French).
 
 ## License
 

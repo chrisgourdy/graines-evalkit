@@ -37,6 +37,7 @@ MANDATORY_FILES = [
     "docs/STATUS.md",
     "docs/ACCEPTANCE_SCENARIOS.md",
     "docs/SPEC_MASTER_PROMPT_V2.1.md",
+    "docs/TUTORIEL.md",
 ]
 
 MANDATORY_SECTIONS = [

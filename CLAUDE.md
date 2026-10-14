@@ -125,7 +125,8 @@ cd sdk/typescript && npm ci && npm run gen && npm test
 
 | File | Owns |
 |---|---|
-| `README.md` | Purpose, quick start, layout |
+| `README.md` | Purpose, quick start, layout, link to the user tutorial |
+| `docs/TUTORIEL.md` | User tutorial in French (Christophe's reference); updated at the end of every phase |
 | `docs/SPEC_MASTER_PROMPT_V2.1.md` | Requirements source (immutable) |
 | `docs/ARCHITECTURE.md` | Structure, data flow, module boundaries |
 | `docs/STATUS.md` | Implemented / partially verified / simulated / untested / planned / blocked |
@@ -168,7 +169,9 @@ section of this index is absent.
 2. Run the commands in §6; all must be green before touching anything.
 3. Pick the next phase step from `docs/ROADMAP.md`; each phase has acceptance criteria.
 4. After any significant change: tests green, `CHANGELOG.md`, `docs/STATUS.md`, backlog,
-   and this file's §2 updated; commit.
+   `docs/TUTORIEL.md` (user-facing behaviour) and this file's §2 updated; commit.
+5. Replies to Christophe are always in French; the tutorial must stay deliverable as is in
+   any conversation of the Claude project (a copy lives in the project docs).
 
 ## 10. Next actions
 

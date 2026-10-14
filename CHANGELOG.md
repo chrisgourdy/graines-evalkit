@@ -5,6 +5,8 @@ All notable changes to this project are documented here (Keep a Changelog, semve
 ## [Unreleased]
 
 ### Added
+- `docs/TUTORIEL.md`: user tutorial in French, linked from README and CLAUDE.md; the docs
+  consistency test now requires it.
 - Phase 5 (distribution): HTTP API `/v1` (FastAPI; `X-EvalKit-Key`, 503 when no key is
   configured, loopback bind, background campaign execution, usage/event push, schemas), CLI
   `api serve`, TypeScript SDK `@graines/evalkit` (types generated per schema, fetch client,
