@@ -1,16 +1,19 @@
 {
   "workflow": "ci",
   "job": "docker",
-  "run_id": "38576929393",
-  "run_url": "https://github.com/chrisgourdy/graines-evalkit/actions/runs/38576929393",
-  "job_url": "https://github.com/chrisgourdy/graines-evalkit/actions/runs/38576929393/job/115896375912",
-  "commit": "7eb20b37c46c74f6afaf978a76db5fe51b6cce7f",
+  "run_id": "38579832916",
+  "run_url": "https://github.com/chrisgourdy/graines-evalkit/actions/runs/38579832916",
+  "job_url": "https://github.com/chrisgourdy/graines-evalkit/actions/runs/38579832916/job/115906482540",
+  "commit": "e1be9802faeae286aae929e2c61bcc62e37e6671",
   "image": "graines/evalkit:ci",
-  "image_digest": "sha256:1191d5a9fdc9357d5fdbd4fff9fd2f94cdf342fd602c55bce6a9f226007a3a5d",
-  "platforms_built": ["linux/amd64", "linux/arm64"],
-  "campaign_id": "cmp_3208284b76dc4db2bd4abc166174e711",
+  "image_digest": "sha256:bb56784ef63ca8b6df25cb805dc5735fba235e5b4de579ac3dfa7c2e1249b257",
+  "platforms_built": [
+    "linux/amd64",
+    "linux/arm64"
+  ],
+  "campaign_id": "cmp_a67c901e7fe14d21a4884382c62ba71a",
   "campaign_status": "COMPLETED",
-  "scorecard_id": "scd_143b7d43dc754b67a0bf163cbd824e7d",
+  "scorecard_id": "scd_1e0d9b38aa3d43c78bc306aff34e11c2",
   "audit_events": 19,
   "checks": {
     "image_built": true,
@@ -23,5 +26,12 @@
   },
   "conclusion": "success",
   "note": "simulated agent (sim.deterministic) inside the container; no provider",
-  "provenance": "transcribed verbatim from the job log of run 38576929393 (step 'Smoke test in a container with a persistent volume'); the original file and the persisted /data volume (evalkit.db, artifacts, reports) are in the CI artifact 'docker-evidence' of that run; job duration 5m02s, multi-arch build 4m03s"
+  "provenance": "transcribed verbatim from the job log of run 38579832916 (run #2, commit e1be980 \u2014 same code as 7eb20b3 tested by run #1 / 38576929393, digest sha256:1191d5a9fdc9357d5fdbd4fff9fd2f94cdf342fd602c55bce6a9f226007a3a5d, campaign cmp_3208284b76dc4db2bd4abc166174e711); the original file and the persisted /data volume are in the CI artifact 'docker-evidence' of each run; image digests differ between runs: the build is not byte-reproducible (timestamps, pip resolution)",
+  "previous_runs": [
+    {
+      "run_id": "38576929393",
+      "commit": "7eb20b37c46c74f6afaf978a76db5fe51b6cce7f",
+      "conclusion": "success"
+    }
+  ]
 }
