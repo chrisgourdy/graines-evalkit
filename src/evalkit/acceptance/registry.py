@@ -26,6 +26,10 @@ class AcceptanceScenario:
     blocked_reason: str | None = None
     notes: str = ""
     extra_evidence: tuple[str, ...] = field(default_factory=tuple)
+    ci_evidence: str | None = None
+    """Relative path of a JSON evidence file written from a CI run (mode CI); when present and
+    valid the scenario is judged on it instead of being BLOCKED."""
+    ci_required_checks: tuple[str, ...] = ()
 
 
 SCENARIOS: tuple[AcceptanceScenario, ...] = (
@@ -245,6 +249,15 @@ SCENARIOS: tuple[AcceptanceScenario, ...] = (
         (),
         mode=Mode.CI,
         blocked_reason="no Docker daemon in this environment; CI job `docker` builds and smoke-runs the image once the repository is linked (EK-0030)",
+        ci_evidence="docs/evidence/ci-docker.json",
+        ci_required_checks=(
+            "image_built",
+            "version",
+            "campaign_completed",
+            "campaign_persisted",
+            "db_check",
+        ),
+        notes="judged on docs/evidence/ci-docker.json, written by the CI job `docker` (run url, image digest, checks)",
     ),
     AcceptanceScenario(
         24,

@@ -174,3 +174,51 @@ def test_registry_matches_acceptance_scenarios_doc() -> None:
 def test_cli_acceptance_list() -> None:
     r = runner_cli.invoke(app, ["acceptance", "list"])
     assert r.exit_code == 0 and "30" in r.output and "BLOCKED" in r.output
+
+
+def test_ci_evidence_lifts_docker_block_only_when_checks_pass(tmp_path: Path) -> None:
+    all_tests = {t: "passed" for s in SCENARIOS for t in s.tests}
+    junit = _junit(tmp_path / "junit.xml", all_tests)
+    docker = next(s for s in SCENARIOS if s.number == 23)
+    assert docker.ci_evidence
+    root = tmp_path / "root"
+    ev_path = root / docker.ci_evidence
+    ev_path.parent.mkdir(parents=True)
+    # no evidence file → BLOCKED with reason
+    r = next(
+        x
+        for x in build_report(parse_junit(junit), junit_path=junit, root=root).results
+        if x.scenario.number == 23
+    )
+    assert r.result == "BLOCKED" and "Docker" in r.detail
+    good = {
+        "workflow": "ci",
+        "run_id": "1",
+        "run_url": "https://example.invalid/runs/1",
+        "commit": "abc",
+        "image_digest": "sha256:x",
+        "campaign_id": "cmp_1",
+        "campaign_status": "COMPLETED",
+        "conclusion": "success",
+        "checks": dict.fromkeys(docker.ci_required_checks, True),
+    }
+    ev_path.write_text(json.dumps(good), encoding="utf-8")
+    report = build_report(parse_junit(junit), junit_path=junit, root=root)
+    r = next(x for x in report.results if x.scenario.number == 23)
+    assert r.result == "PASS" and report.counts["BLOCKED"] == 0 and report.accepted
+    assert "runs/1" in r.detail and all(o.outcome == "passed" for o in r.evidence)
+    bad = {**good, "checks": {**good["checks"], "campaign_persisted": False}}
+    ev_path.write_text(json.dumps(bad), encoding="utf-8")
+    r = next(
+        x
+        for x in build_report(parse_junit(junit), junit_path=junit, root=root).results
+        if x.scenario.number == 23
+    )
+    assert r.result == "FAIL" and "campaign_persisted" in r.detail
+    ev_path.write_text(json.dumps({**good, "conclusion": "failure"}), encoding="utf-8")
+    r = next(
+        x
+        for x in build_report(parse_junit(junit), junit_path=junit, root=root).results
+        if x.scenario.number == 23
+    )
+    assert r.result == "FAIL"

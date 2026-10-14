@@ -119,6 +119,40 @@ def _git_commit(root: Path) -> str | None:
         return None
 
 
+def _judge_ci(sc: AcceptanceScenario, root: Path) -> ScenarioResult:
+    """CI-mode scenario: PASS only on a valid evidence file whose required checks all passed."""
+    import json
+
+    path = root / sc.ci_evidence if sc.ci_evidence else None
+    if path is None or not path.is_file():
+        return ScenarioResult(sc, "BLOCKED", [], sc.blocked_reason or "blocked")
+    try:
+        ev = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return ScenarioResult(sc, "FAIL", [], f"unreadable CI evidence {path}: {exc}")
+    checks = ev.get("checks", {}) if isinstance(ev, dict) else {}
+    missing = [c for c in sc.ci_required_checks if checks.get(c) is not True]
+    outcomes = [
+        TestOutcome(
+            f"ci:{ev.get('workflow', 'ci')}#{ev.get('run_id', '?')}:{c}",
+            "passed" if checks.get(c) is True else "failed",
+            0.0,
+            "" if checks.get(c) is True else "check missing or false in CI evidence",
+        )
+        for c in sc.ci_required_checks
+    ]
+    detail = (
+        f"CI run {ev.get('run_url', 'n/a')} on commit {ev.get('commit', 'n/a')}, "
+        f"image {ev.get('image_digest', 'n/a')}, campaign {ev.get('campaign_id', 'n/a')} "
+        f"({ev.get('campaign_status', 'n/a')}); evidence file {sc.ci_evidence}"
+    )
+    if ev.get("conclusion") != "success" or missing:
+        return ScenarioResult(
+            sc, "FAIL", outcomes, f"{detail}; failed checks: {missing or ev.get('conclusion')}"
+        )
+    return ScenarioResult(sc, "PASS", outcomes, detail)
+
+
 def build_report(
     outcomes: dict[str, TestOutcome],
     *,
@@ -134,7 +168,7 @@ def build_report(
     results: list[ScenarioResult] = []
     for sc in SCENARIOS:
         if sc.mode is Mode.CI:
-            results.append(ScenarioResult(sc, "BLOCKED", [], sc.blocked_reason or "blocked"))
+            results.append(_judge_ci(sc, root))
             continue
         if sc.mode is Mode.SUITE:
             ok = failed == 0 and errors == 0 and total > 0

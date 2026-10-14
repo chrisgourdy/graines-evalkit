@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   python:
@@ -24,6 +28,21 @@ jobs:
       - run: cd sdk/typescript && npm ci && npm run gen && npm run build
       - run: .venv/bin/pytest            # includes the CLI↔API↔SDK compatibility test
       - run: .venv/bin/pip-audit --skip-editable || true   # advisory until release pins (EK-0010)
+
+  acceptance:
+    # The 30 scenarios on Python 3.13 with JUnit evidence; the report is an artifact.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: uv venv .venv --python 3.13 && uv pip install -e ".[api,http]" --group dev
+      - run: cd sdk/typescript && npm ci && npm run gen && npm run build
+      - run: .venv/bin/evalkit acceptance run --out ci-evidence/acceptance/ACCEPTANCE_REPORT.md --junit ci-evidence/acceptance/junit.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: acceptance-evidence, path: ci-evidence/acceptance/ }
 
   wheel:
     runs-on: ubuntu-latest
@@ -52,6 +71,7 @@ jobs:
 
   docker:
     # The only place images are built (no daemon in the development environment).
+    # Produces docs/evidence/ci-docker.json (artifact `docker-evidence`) for acceptance scenario 23.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -66,6 +86,7 @@ jobs:
           push: false
           tags: graines/evalkit:ci
       - name: Build amd64 for smoke test
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -73,9 +94,64 @@ jobs:
           platforms: linux/amd64
           load: true
           tags: graines/evalkit:ci
-      - run: docker run --rm graines/evalkit:ci cli version
-      - run: docker run --rm graines/evalkit:ci worker demo greeter quick
-      - run: docker run --rm graines/evalkit:ci cli db check --data-dir /data
+      - name: Smoke test in a container with a persistent volume
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ci-evidence/docker
+          E=ci-evidence/docker
+          docker volume create evalkit-ci
+          docker run --rm graines/evalkit:ci cli version | tee $E/version.txt
+          docker run --rm -v evalkit-ci:/data graines/evalkit:ci worker demo greeter standard | tee $E/worker.txt
+          docker run --rm -v evalkit-ci:/data graines/evalkit:ci cli campaigns --project demo --data-dir /data | tee $E/campaigns.txt
+          docker run --rm -v evalkit-ci:/data graines/evalkit:ci cli db check --data-dir /data | tee $E/dbcheck.txt
+          # second container, same volume: the campaign and its scorecard must still be there
+          CID=$(awk '/^cmp_/{print $1; exit}' $E/campaigns.txt)
+          docker run --rm -v evalkit-ci:/data graines/evalkit:ci cli scorecard "$CID" --data-dir /data --project-dir /projects/demo | tee $E/scorecard.txt
+          docker run --rm -v evalkit-ci:/data graines/evalkit:ci cli report "$CID" --data-dir /data | tee $E/report.txt
+          docker run --rm -v evalkit-ci:/data graines/evalkit:ci cli self-check --data-dir /data | tee $E/selfcheck.txt
+          # copy the persisted data directory out of the volume as evidence
+          docker run --rm -v evalkit-ci:/data -v "$PWD/$E:/out" --user root --entrypoint sh graines/evalkit:ci -c 'cp -r /data /out/data && chmod -R a+rX /out/data'
+          ls -R $E/data | head -50
+          python3 - "$CID" <<'PY'
+          import json, os, re, sys, pathlib
+          cid = sys.argv[1]
+          E = pathlib.Path("ci-evidence/docker")
+          worker = (E / "worker.txt").read_text()
+          campaigns = (E / "campaigns.txt").read_text()
+          status = re.search(r"status: (\w+)", worker)
+          checks = {
+              "image_built": True,
+              "version": (E / "version.txt").read_text().startswith("evalkit "),
+              "campaign_completed": bool(status and status.group(1) == "COMPLETED"),
+              "campaign_persisted": cid in campaigns and "COMPLETED" in campaigns and (E / "data" / "evalkit.db").is_file(),
+              "scorecard": "PASS" in (E / "scorecard.txt").read_text(),
+              "db_check": "audit chain: OK" in (E / "dbcheck.txt").read_text(),
+              "self_check": ": PASS" in (E / "selfcheck.txt").read_text(),
+          }
+          ev = {
+              "workflow": "ci", "job": "docker",
+              "run_id": os.environ.get("GITHUB_RUN_ID"),
+              "run_url": f"{os.environ.get('GITHUB_SERVER_URL')}/{os.environ.get('GITHUB_REPOSITORY')}/actions/runs/{os.environ.get('GITHUB_RUN_ID')}",
+              "commit": os.environ.get("GITHUB_SHA"),
+              "image": "graines/evalkit:ci",
+              "image_digest": os.environ.get("IMAGE_DIGEST"),
+              "platforms_built": ["linux/amd64", "linux/arm64"],
+              "campaign_id": cid,
+              "campaign_status": status.group(1) if status else None,
+              "checks": checks,
+              "conclusion": "success" if all(checks.values()) else "failure",
+              "note": "simulated agent (sim.deterministic) inside the container; no provider",
+          }
+          (E / "ci-docker.json").write_text(json.dumps(ev, indent=2))
+          print(json.dumps(ev, indent=2))
+          sys.exit(0 if ev["conclusion"] == "success" else 1)
+          PY
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: docker-evidence, path: ci-evidence/docker/ }
 
   sbom:
     runs-on: ubuntu-latest
