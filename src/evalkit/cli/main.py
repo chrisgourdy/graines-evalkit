@@ -406,3 +406,226 @@ def api_serve(
 
 if __name__ == "__main__":  # pragma: no cover
     app()
+
+
+# --- Phase 6: tickets, retrofit, learnings, self-check -------------------------------------
+
+tickets_app = typer.Typer(no_args_is_help=True, help="Backlog tickets (FEEDBACK).")
+retrofit_app = typer.Typer(no_args_is_help=True, help="Retrofit cycle (IMPROVEMENT).")
+learnings_app = typer.Typer(no_args_is_help=True, help="Knowledge base of learnings.")
+backlog_app = typer.Typer(no_args_is_help=True, help="Backlog export.")
+app.add_typer(tickets_app, name="tickets")
+app.add_typer(retrofit_app, name="retrofit")
+app.add_typer(learnings_app, name="learnings")
+app.add_typer(backlog_app, name="backlog")
+
+
+@tickets_app.command("detect")
+def tickets_detect(
+    campaign_id: str = typer.Argument(...),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+    project_dir: Path | None = typer.Option(None, help="Project dir to read weights from."),
+) -> None:
+    """Build the scorecard of a campaign and open tickets for every incident found."""
+    from evalkit.core import load_project
+    from evalkit.feedback import TicketStore
+    from evalkit.scoring import build_scorecard
+
+    repo = _repo(data_dir)
+    weights = load_project(project_dir).weights if project_dir else None
+    card = build_scorecard(repo, campaign_id, weights=weights or None)
+    opened = TicketStore(repo, actor="cli").detect_incidents(card)
+    typer.echo(f"scorecard {card.scorecard_id}: {card.overall_status.value}")
+    if not opened:
+        typer.echo("no incident detected")
+    for t in opened:
+        link = f" -> {t.related_tickets[0]}" if t.related_tickets else ""
+        typer.echo(f"  {t.ticket_id} {t.status.value:10} P{t.priority} {t.title}{link}")
+
+
+@tickets_app.command("list")
+def tickets_list(
+    project: str = typer.Option(..., "--project"),
+    status: str | None = typer.Option(None, help="Filter by status."),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """List tickets of a project."""
+    repo = _repo(data_dir)
+    for t in repo.list_tickets(project):
+        if status and t.status.value != status.upper():
+            continue
+        typer.echo(
+            f"{t.ticket_id} {t.status.value:12} P{t.priority} {t.severity.value:8} "
+            f"{t.agent_id}@{t.agent_version} {t.title}"
+        )
+
+
+@tickets_app.command("show")
+def tickets_show(
+    ticket_id: str = typer.Argument(...), data_dir: Path | None = typer.Option(None, "--data-dir")
+) -> None:
+    """Print a ticket as JSON."""
+    repo = _repo(data_dir)
+    typer.echo(repo.get_ticket(ticket_id).model_dump_json(indent=2))
+
+
+@tickets_app.command("transition")
+def tickets_transition(
+    ticket_id: str = typer.Argument(...),
+    status: str = typer.Argument(..., help="Target status (workflow 1.0.0)."),
+    note: str = typer.Option(..., "--note", help="Why (recorded in the ticket history)."),
+    decision: str | None = typer.Option(None, help="Decision text for VALIDATED/REJECTED/CLOSED."),
+    actor: str = typer.Option("human", help="Who decides (recorded in the audit trail)."),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Move a ticket through the workflow (invalid transitions are refused)."""
+    from evalkit.contracts import TicketStatus
+    from evalkit.feedback import TicketStore
+
+    repo = _repo(data_dir)
+    try:
+        t = TicketStore(repo, actor=actor).transition(
+            ticket_id, TicketStatus(status.upper()), note, decision=decision
+        )
+    except ValueError as exc:
+        typer.echo(f"refused: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(f"{t.ticket_id}: {t.status.value}")
+
+
+@backlog_app.command("export")
+def backlog_export(
+    project: str = typer.Option(..., "--project"),
+    out: Path | None = typer.Option(None, help="Markdown file (default: stdout)."),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Render the ticket backlog of a project as Markdown (docs/BACKLOG.md format)."""
+    from evalkit.feedback import render_backlog_markdown
+
+    md = render_backlog_markdown(_repo(data_dir), project)
+    if out:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(md, encoding="utf-8")
+        typer.echo(str(out))
+    else:
+        typer.echo(md)
+
+
+@retrofit_app.command("run")
+def retrofit_run(
+    project_dir: Path = typer.Option(..., "--project-dir", exists=True),
+    agent: str = typer.Option(..., "--agent"),
+    broken: str = typer.Option(..., "--broken", help="Campaign id showing the incident."),
+    good: str = typer.Option(..., "--good", help="Last known-good campaign id (baseline)."),
+    params: str | None = typer.Option(
+        None, help="JSON params patch to test instead of reverting to the good config."
+    ),
+    version: str | None = typer.Option(None, help="Agent version to test with --params."),
+    max_iterations: int = typer.Option(2, "--max-iterations", min=1),
+    seed: int = typer.Option(0),
+    actor: str = typer.Option("cli"),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Run the retrofit cycle OBSERVE→…→LEARN on an isolated copy of the project (no HOLDOUT)."""
+    import json
+
+    from evalkit.improvement import RetrofitCycle, params_override
+
+    provider = params_override(json.loads(params), version) if params else None
+    cycle = RetrofitCycle(
+        _repo(data_dir),
+        actor=actor,
+        fix_provider=provider,
+        max_iterations=max_iterations,
+        seed=seed,
+    )
+    res = cycle.run(project_dir, agent, broken_campaign_id=broken, good_campaign_id=good)
+    typer.echo(f"experiment {res.experiment_id}: {res.decision}")
+    typer.echo(f"  steps: {' > '.join(res.steps)}")
+    typer.echo(f"  ticket: {res.ticket_id or 'n/a'}")
+    typer.echo(f"  candidate campaign: {res.candidate_campaign_id or 'n/a'}")
+    typer.echo(f"  fix: {json.dumps(res.fix, sort_keys=True) if res.fix else 'n/a'}")
+    typer.echo(f"  learning: {res.learning_id or 'n/a'}")
+    typer.echo(f"  rationale: {res.rationale}")
+
+
+@retrofit_app.command("confirm")
+def retrofit_confirm(
+    project_dir: Path = typer.Option(..., "--project-dir", exists=True),
+    agent: str = typer.Option(..., "--agent"),
+    good: str = typer.Option(..., "--good", help="Last known-good campaign id (baseline)."),
+    learning: str = typer.Option(..., "--learning", help="Learning id to confirm."),
+    seed: int = typer.Option(0),
+    actor: str = typer.Option("human"),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Confirm an observed learning on a DEEP campaign of the real project (HOLDOUT included)."""
+    from evalkit.improvement import RetrofitCycle
+
+    res = RetrofitCycle(_repo(data_dir), actor=actor, seed=seed).confirm(
+        project_dir, agent, good_campaign_id=good, learning_id=learning
+    )
+    for k, v in res.items():
+        typer.echo(f"  {k}: {v}")
+
+
+@learnings_app.command("list")
+def learnings_list(
+    project: str = typer.Option(..., "--project"),
+    status: str | None = typer.Option(None),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """List learnings of a project with their validation status."""
+    from evalkit.improvement import LearningStore
+
+    for it in LearningStore(_repo(data_dir)).list(project, status):
+        typer.echo(f"{it['learning_id']} {it['status']:9} {it['scope']:20} {it['statement']}")
+
+
+@learnings_app.command("set-status")
+def learnings_set_status(
+    learning_id: str = typer.Argument(...),
+    status: str = typer.Argument(..., help="observed | verified | adopted | rejected"),
+    actor: str = typer.Option("human"),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Change a learning's status (adoption is a human decision)."""
+    from evalkit.improvement import LearningStore
+
+    it = LearningStore(_repo(data_dir), actor=actor).set_status(learning_id, status)
+    typer.echo(f"{it['learning_id']}: {it['status']}")
+
+
+@learnings_app.command("export")
+def learnings_export(
+    project: str = typer.Option(..., "--project"),
+    out: Path | None = typer.Option(None, help="Markdown file (default: stdout)."),
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+) -> None:
+    """Render the learnings of a project as Markdown (docs/LEARNINGS.md format)."""
+    from evalkit.improvement import LearningStore
+
+    md = LearningStore(_repo(data_dir)).render_markdown(project)
+    if out:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(md, encoding="utf-8")
+        typer.echo(str(out))
+    else:
+        typer.echo(md)
+
+
+@app.command("self-check")
+def self_check(
+    data_dir: Path | None = typer.Option(None, "--data-dir"),
+    no_persist: bool = typer.Option(False, "--no-persist", help="Do not store the scorecard."),
+) -> None:
+    """Evaluate EVALKIT's own mechanisms (statistics, metering, cost, budgets, audit, schemas)."""
+    from evalkit.improvement import self_evaluate
+
+    card, details = self_evaluate(_repo(data_dir), persist=not no_persist)
+    for name, ok, msg in details:
+        mark = "PASS" if ok else "FAIL" if ok is False else "NOT_EVALUATED"
+        typer.echo(f"  {name:18} {mark:14} {msg}")
+    typer.echo(f"{card.scorecard_id}: {card.overall_status.value}")
+    if card.overall_status.value == "FAIL":
+        raise typer.Exit(code=1)

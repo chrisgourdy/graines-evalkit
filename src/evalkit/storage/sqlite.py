@@ -317,12 +317,26 @@ class SQLiteRepository:
         for row in rows:
             yield Ticket.model_validate_json(row["json"])
 
-    def save_ticket(self, ticket: Ticket) -> None:
+    def save_ticket(self, ticket: Ticket, fingerprint: str | None = None) -> None:
         self._conn.execute(
-            "INSERT OR REPLACE INTO tickets(ticket_id, project_id, status, json)"
-            " VALUES (?, ?, ?, ?)",
-            (ticket.ticket_id, ticket.project_id, ticket.status.value, ticket.model_dump_json()),
+            "INSERT OR REPLACE INTO tickets(ticket_id, project_id, status, json, fingerprint,"
+            " agent_id) VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                ticket.ticket_id,
+                ticket.project_id,
+                ticket.status.value,
+                ticket.model_dump_json(),
+                fingerprint,
+                ticket.agent_id,
+            ),
         )
+
+    def find_tickets_by_fingerprint(self, project_id: str, fingerprint: str) -> list[Ticket]:
+        rows = self._conn.execute(
+            "SELECT json FROM tickets WHERE project_id=? AND fingerprint=? ORDER BY ticket_id",
+            (project_id, fingerprint),
+        ).fetchall()
+        return [Ticket.model_validate_json(r["json"]) for r in rows]
 
     def get_ticket(self, ticket_id: str) -> Ticket:
         row = self._conn.execute(

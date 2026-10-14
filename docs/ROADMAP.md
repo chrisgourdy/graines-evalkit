@@ -12,7 +12,7 @@ Boundaries may move when tests or constraints justify it; the goal is a reliable
 | 3 Measurement & economics | stats (intervals, paired comparison, bootstrap, Monte-Carlo), TOKEN_METER, COST_CONTROLLER (registry, forecast, reservations, caps, concurrency), AUDIT_TRAIL runtime | statistical property tests; concurrent-budget test; chronology reconstruction test (done 2026-10-14) |
 | 4 Scoring & visualisation | scorecards, validity controls, HTML report with charts, dashboard pages | report rendered from stored data only; chart library choice recorded (ADR) (done 2026-10-14, ADR-0007) |
 | 5 Distribution | wheel, Dockerfile + compose (CI build), npm SDK, compatibility tests, CI pipeline | wheel installs in a clean venv; image builds in CI for amd64/arm64; SDK tests pass (done 2026-10-14 except the CI image build, pending repo link) |
-| 6 Continuous improvement | backlog/tickets, incidents, retrofit cycle, learnings KB, self-evaluation | retrofit cycle demonstrated end-to-end on a simulated regression |
+| 6 Continuous improvement | backlog/tickets, incidents, retrofit cycle, learnings KB, self-evaluation | retrofit cycle demonstrated end-to-end on a simulated regression (done 2026-10-14, `tests/test_improvement.py`) |
 | 7 Autonomy | scheduler entrypoints, policies, resume/restore, loop guards | campaign runs from a cron/container with no Cowork; interrupted campaign resumes |
 | 8 Acceptance | the 30 mandatory scenarios executed, acceptance report with evidence | each scenario has a pre-defined criterion and a recorded result; failures stay visible |
 

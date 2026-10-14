@@ -5,6 +5,17 @@ All notable changes to this project are documented here (Keep a Changelog, semve
 ## [Unreleased]
 
 ### Added
+- Phase 6 (continuous improvement): migration 0003 (`tickets.fingerprint/agent_id`,
+  `learnings`, `experiments`); `governance.ProjectPolicyEngine` + `autonomy:` block in
+  `evalkit.yaml` (levels enforced in code, `ALWAYS_HUMAN` kinds, `agent:*` actors never above
+  level 2; `Action.required_level` now defaults to level 1 and can never lower a kind's level);
+  `feedback.TicketStore` (incident detection from scorecards, structured tickets with
+  evidence, fingerprint dedup with linked DUPLICATE tickets, workflow 1.0.0, audit events),
+  `render_backlog_markdown`; `improvement.RetrofitCycle` (OBSERVE→…→LEARN on an isolated
+  project copy without HOLDOUT, built-in fix providers, paired comparison, policy decision,
+  `experiments` table, `confirm` on DEEP with HOLDOUT), `LearningStore`, `self_evaluate`;
+  `campaign.started` events now carry the agent configuration; CLI `tickets`, `retrofit`,
+  `learnings`, `backlog export`, `self-check`; 15 tests (acceptance scenarios 18–21).
 - `docs/TUTORIEL.md`: user tutorial in French, linked from README and CLAUDE.md; the docs
   consistency test now requires it.
 - Phase 5 (distribution): HTTP API `/v1` (FastAPI; `X-EvalKit-Key`, 503 when no key is

@@ -1,7 +1,7 @@
 # EVALKIT — Tutoriel d'utilisation
 
 Ce tutoriel est la référence d'usage pour Christophe. Il décrit ce qui fonctionne **à la fin de
-la Phase 5** (voir `docs/STATUS.md` pour le détail vérifié / non vérifié). Tout ce qui est
+la Phase 6** (voir `docs/STATUS.md` pour le détail vérifié / non vérifié). Tout ce qui est
 décrit ici tourne sans aucun fournisseur LLM : les agents de démonstration sont simulés.
 Un agent simulé n'est jamais une validation de production.
 
@@ -223,9 +223,106 @@ statiquement : `docker/Dockerfile` (non-root, modes `cli` / `api` / `worker <pro
 [profil]`), `docker/compose.demo.yml` (`EVALKIT_API_KEY=… docker compose -f
 docker/compose.demo.yml up --build`).
 
-## 10. Ce qui n'existe pas encore
+## 10. Amélioration continue : tickets, rétrofit, apprentissages
 
-Tickets et cycle de rétrofit (Phase 6), planificateur et reprise après interruption (Phase 7),
+Tout ce chapitre tourne sur des agents simulés et sur une **copie isolée** de ton projet.
+EVALKIT ne modifie jamais ton `evalkit.yaml` réel : il observe, diagnostique, teste et décide.
+Appliquer la correction reste ton geste.
+
+### 10.1 Détecter les incidents d'une campagne
+
+Une campagne dont la scorecard contient un échec éliminatoire, une régression par rapport à
+sa baseline ou un taux d'erreur d'adaptateur supérieur à 20 % produit des tickets :
+
+```bash
+evalkit tickets detect <campaign_id> --data-dir data --project-dir mon-projet
+evalkit tickets list --project mon-projet --data-dir data
+evalkit tickets show <ticket_id> --data-dir data
+```
+
+Chaque ticket porte l'attendu, l'observé, l'impact, la criticité du scénario, les références
+de preuve (ids de runs, de résultats, de scorecard) et un historique append-only. Relancer la
+détection sur la même campagne ne crée pas de doublon aveugle : le nouveau ticket est créé en
+statut `DUPLICATE` et lié à l'original dans les deux sens, rien n'est effacé.
+
+Le workflow (version 1.0.0) est `OPEN → TRIAGED → DIAGNOSED → FIX_PROPOSED → TESTING →
+VALIDATED | REJECTED → CLOSED`. Une transition hors workflow est refusée :
+
+```bash
+evalkit tickets transition <ticket_id> TRIAGED --note "pris en charge" --data-dir data
+evalkit tickets transition <ticket_id> CLOSED --note "won't fix" --decision WONTFIX --data-dir data
+evalkit backlog export --project mon-projet --out BACKLOG.md --data-dir data
+```
+
+### 10.2 Lancer le cycle de rétrofit sur une régression
+
+Prérequis : une campagne « bonne » (dernier état connu correct) et une campagne « cassée » du
+**même agent**. Sur la démo, `greeter` 1.0.0 puis `greeter` reconfiguré en `behavior: wrong` :
+
+```bash
+evalkit run mon-projet --agent greeter --data-dir data            # bonne → note l'id
+# ... tu casses la config de greeter dans evalkit.yaml, puis :
+evalkit run mon-projet --agent greeter --data-dir data            # cassée → note l'id
+evalkit retrofit run --project-dir mon-projet --agent greeter \
+  --broken <cmp_cassee> --good <cmp_bonne> --data-dir data
+```
+
+Le cycle enchaîne `OBSERVE > CLASSIFY > DIAGNOSE > PRIORITIZE > PROPOSE > ISOLATE > TEST >
+COMPARE > DECIDE > RECORD > LEARN`, chaque étape étant un événement d'audit (`payload.step`,
+`payload.experiment_id`). Concrètement : il construit la scorecard de la campagne cassée avec
+la bonne en baseline, ouvre les tickets, formule des hypothèses **à partir des faits
+enregistrés** (différence de configuration ou de version entre les deux campagnes — jamais
+inventées par un LLM), propose une correction (par défaut : revenir à la configuration de la
+bonne campagne ; sinon `--params '{"behavior": "reference"}' --version 1.0.1`), copie le
+projet dans un répertoire temporaire **sans les scénarios HOLDOUT**, y applique la
+correction, lance une campagne STANDARD candidate, la compare à la cassée (doit s'améliorer)
+et à la bonne (ne doit pas régresser), puis décide :
+
+| Décision | Sens |
+|---|---|
+| `HUMAN_VALIDATION_REQUIRED` | correction validée sur le set DEVELOPMENT, mais l'application dépasse le niveau d'autonomie du projet (défaut `max_level: 2`) : c'est toi qui appliques |
+| `APPLY_ALLOWED` | idem, et le projet a ouvert un périmètre de niveau 3 (`autonomy.apply_perimeter: [apply_fix_low_risk]`, `max_level: 3`) — EVALKIT n'écrit toujours pas dans ton projet (EK-0033), il enregistre l'autorisation |
+| `REJECTED` | aucune candidate acceptable après `--max-iterations` (défaut 2) |
+| `NOTHING_TO_FIX` | la scorecard ne montre aucun incident |
+| `ALREADY_DECIDED` | le ticket est déjà VALIDATED ou CLOSED : un ticket décidé n'est jamais retravaillé |
+
+Un acteur `agent:*` (`--actor agent:xyz`) n'obtient jamais `APPLY_ALLOWED`, quelle que soit la
+configuration : les agents proposent, ils n'appliquent pas.
+
+### 10.3 Confirmer un apprentissage sur le HOLDOUT
+
+Une correction validée produit un apprentissage en statut `observed` : elle n'a été vue que
+sur le set DEVELOPMENT. Après avoir appliqué toi-même la correction dans `evalkit.yaml` :
+
+```bash
+evalkit retrofit confirm --project-dir mon-projet --agent greeter \
+  --good <cmp_bonne> --learning <lrn_id> --data-dir data
+evalkit learnings list --project mon-projet --data-dir data
+evalkit learnings set-status <lrn_id> adopted --data-dir data     # décision humaine
+evalkit learnings export --project mon-projet --out LEARNINGS.md --data-dir data
+```
+
+`confirm` lance une campagne DEEP (HOLDOUT inclus) sur le projet réel ; sans échec
+éliminatoire ni régression contre la bonne campagne, l'apprentissage passe `verified`, sinon
+`rejected`. Rien n'est une règle avant `adopted`, et `adopted` est une décision humaine.
+
+### 10.4 EVALKIT se vérifie lui-même
+
+```bash
+evalkit self-check --data-dir data
+```
+
+Sept contrôles déterministes (couverture Wilson par simulation, non double-comptage des
+tokens Anthropic/OpenAI, coût tenant compte des sous-ensembles, blocage budgétaire, intégrité
+de la chaîne d'audit de ta base, export des 11 schémas, présence des documents obligatoires)
+produisent une scorecard de l'agent `evalkit` (projet `evalkit-self`). Un contrôle qui ne
+peut pas tourner est `NOT_EVALUATED`, jamais masqué ; le code de sortie est 1 si un contrôle
+échoue.
+
+## 11. Ce qui n'existe pas encore
+
+Planificateur et reprise après interruption (Phase 7), application automatique d'une
+correction validée dans ton projet (EK-0033), hypothèses de diagnostic par LLM (EK-0034),
 rapport de recette des 30 scénarios (Phase 8), adaptateurs Anthropic/OpenAI natifs, pont
 OpenTelemetry, tarifs réels, image Docker construite, publication PyPI/npm. `docs/STATUS.md`
 fait foi, ligne par ligne.

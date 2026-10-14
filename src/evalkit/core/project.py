@@ -9,6 +9,7 @@ import yaml
 from pydantic import Field, ValidationError
 
 from evalkit.contracts import ContractModel, Scenario
+from evalkit.governance.policy import AutonomyConfig
 
 
 class AgentConfig(ContractModel):
@@ -24,6 +25,10 @@ class ProjectConfig(ContractModel):
     scenarios_dir: str = "scenarios"
     weights: dict[str, float] = Field(
         default_factory=dict, description="Optional per-dimension weights (docs/SCORING.md)."
+    )
+    autonomy: AutonomyConfig = Field(
+        default_factory=AutonomyConfig,
+        description="docs/AUTONOMY_POLICY.md — max level, perimeter.",
     )
 
 

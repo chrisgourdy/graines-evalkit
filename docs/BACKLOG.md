@@ -32,8 +32,11 @@ status · title · notes.
 | EK-0024 | 1 | CLOSED | Phase 5 — wheel build + clean venv install test; Dockerfile + compose; CI multi-arch build | |
 | EK-0025 | 1 | CLOSED | Phase 5 — HTTP API `/v1` (FastAPI) over core; API-key auth; local bind by default | |
 | EK-0026 | 1 | CLOSED | Phase 5 — npm `@graines/evalkit` SDK (types from schemas, client, event/trace push); compat tests | |
-| EK-0028 | 1 | OPEN | Phase 6 — ticket runtime, incident detection, dedup with history, BACKLOG.md export | |
-| EK-0029 | 1 | OPEN | Phase 6 — retrofit cycle on simulated regression, learnings KB, self-evaluation scorecard | |
+| EK-0028 | 1 | CLOSED | Phase 6 — ticket runtime, incident detection, dedup with history, BACKLOG.md export | done 2026-10-14 (`feedback/tickets.py`, `evalkit tickets`, `backlog export`) |
+| EK-0029 | 1 | CLOSED | Phase 6 — retrofit cycle on simulated regression, learnings KB, self-evaluation scorecard | done 2026-10-14 (`improvement/`, `evalkit retrofit`, `learnings`, `self-check`) |
+| EK-0032 | 3 | OPEN | Retrofit: when a cycle validates a fix, sibling tickets of the same campaign (other scenarios/regressions) stay OPEN; link them to the validated ticket | V1.1 |
+| EK-0033 | 2 | OPEN | Phase 7: apply a validated low-risk fix inside the level-3 perimeter (write `evalkit.yaml`, rollback, audit) — today the cycle only decides | |
+| EK-0034 | 4 | OPEN | Diagnosis hypotheses from an LLM (optional, provider required, clearly labelled as such) | V2 |
 | EK-0030 | 2 | OPEN | Run the CI docker job once the GitHub repo exists; record image digest in STATUS | blocked by EK-0005 |
 | EK-0031 | 3 | OPEN | API: pagination and filters on list endpoints; rate limiting | V1.1 |
 | EK-0027 | 3 | OPEN | Scorecard: suppress 'underpowered' warning for deterministic adapters at n=1 when the dimension is fully deterministic | currently honest but noisy |

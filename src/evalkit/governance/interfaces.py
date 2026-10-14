@@ -13,7 +13,10 @@ class Action(ContractModel):
     kind: str
     target: str
     actor: str
-    required_level: AutonomyLevel
+    required_level: AutonomyLevel = Field(
+        default=AutonomyLevel.AUTOMATIC,
+        description="Level the caller declares; the policy engine never goes below the kind's level.",
+    )
     details: dict[str, object] = Field(default_factory=dict)
 
 

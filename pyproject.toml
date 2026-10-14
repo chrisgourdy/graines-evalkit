@@ -76,6 +76,9 @@ ignore = ["ANN401", "S101"]
 "src/evalkit/api/**" = ["B008"]
 "src/evalkit/reporting/html.py" = ["E501"]  # inline HTML/CSS templates
 "src/evalkit/reporting/svg.py" = ["E501"]   # inline SVG fragments
+"src/evalkit/feedback/**" = ["E501"]        # long SQL / message strings
+"src/evalkit/improvement/**" = ["E501"]     # long SQL / message strings
+"src/evalkit/governance/**" = ["E501"]      # long reason strings
 
 [tool.mypy]
 python_version = "3.11"

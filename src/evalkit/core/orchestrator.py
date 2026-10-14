@@ -256,6 +256,7 @@ class CampaignRunner:
                 "planned_runs": planned.planned_runs,
                 "rules": planned.rules,
                 "adapter": planned.adapter.capabilities.model_dump(mode="json"),
+                "agent_config": planned.config.agents[campaign.agent_id].model_dump(mode="json"),
                 "plan": campaign.plan.model_dump(mode="json") if campaign.plan else None,
                 "price_snapshot_ids": campaign.price_snapshot_ids,
                 "max_workers": self.max_workers,

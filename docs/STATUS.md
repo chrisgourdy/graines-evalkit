@@ -1,6 +1,6 @@
 # Status — implemented vs verified
 
-Updated: 2026-10-14 (end of Phase 5).
+Updated: 2026-10-14 (end of Phase 6).
 
 Legend: **IV** implemented & verified (automated test exists and passes) · **IP** implemented,
 partially verified · **SIM** validated only with simulated agents · **NT** implemented, not
@@ -10,7 +10,7 @@ tested · **PL** planned · **BL** blocked.
 |---|---|---|
 | Public contracts, JSON Schema export, double-count-safe usage | IV | `tests/test_contracts.py` |
 | Documentation set + consistency test | IV | `tests/test_docs_consistency.py` |
-| SQLite storage: migrations (0001, 0002), transactions, artifacts | IV | `tests/test_storage.py` |
+| SQLite storage: migrations (0001, 0002, 0003), transactions, artifacts | IV | `tests/test_storage.py` |
 | Audit trail append-only, hash chain, corrections, JSONL export | IV | `tests/test_storage.py` |
 | Secret redaction in events | IP | key-name based only |
 | Project + scenario loader | IV | `tests/test_orchestrator.py` |
@@ -35,7 +35,14 @@ tested · **PL** planned · **BL** blocked.
 | SBOM (CycloneDX 1.6) | IV (manual) | `scripts/sbom.sh` produced 93 components locally |
 | Real provider adapters (Anthropic/OpenAI) | BL | no API key available |
 | OTel bridge | PL | EK-0022 |
-| Backlog/ticket runtime, retrofit cycle, learnings | PL | Phase 6 |
+| Governance policy engine (levels, ALWAYS_HUMAN, agent actors capped) | IV | `tests/test_improvement.py` |
+| Ticket runtime: incident detection, structured tickets, dedup with history, workflow 1.0.0 | IV / SIM | `tests/test_improvement.py` (scenarios 18, 19) |
+| Retrofit cycle OBSERVE→…→LEARN, isolated copy without HOLDOUT, decision by policy, experiments table | IV / SIM | `tests/test_improvement.py` (scenario 20): revert fix accepted, useless fix rejected, agent actor never applies, decided ticket never reworked |
+| Learning confirmation on DEEP campaign with HOLDOUT (`retrofit confirm`) | IV / SIM | `tests/test_improvement.py` |
+| Learnings KB with provenance and status | IV | `tests/test_improvement.py`; `docs/LEARNINGS.md` export |
+| Self-evaluation scorecard of EVALKIT | IV | `tests/test_improvement.py` (scenario 21); `evalkit self-check` |
+| Automatic application of a validated fix to the real project | PL | the cycle decides, never writes the project; level 3 perimeter is checked in code but applying stays manual (EK-0033) |
+| Rule-based diagnosis only (config/version diff); no LLM hypotheses | by design | EK-0034 (V2) |
 | Scheduler, autonomy policies, resume | PL | Phase 7 (`scheduler` image mode exits 64) |
-| Acceptance report (30 scenarios) | PL | Phase 8 — covering tests now exist for 1, 2, 5–17, 22, 24, 25, 28, 29; 23 blocked on CI |
+| Acceptance report (30 scenarios) | PL | Phase 8 — covering tests now exist for 1, 2, 5–22, 24, 25, 28, 29; 23 blocked on CI |
 | External publication (PyPI, npm, registry, GitHub) | not done | requires explicit authorisation (level 4) |
