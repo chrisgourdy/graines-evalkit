@@ -120,7 +120,11 @@ def _git_commit(root: Path) -> str | None:
 
 
 def build_report(
-    outcomes: dict[str, TestOutcome], *, junit_path: Path, root: Path
+    outcomes: dict[str, TestOutcome],
+    *,
+    junit_path: Path,
+    root: Path,
+    git_commit: str | None = None,
 ) -> AcceptanceReport:
     total = len(outcomes)
     failed = sum(1 for o in outcomes.values() if o.outcome == "failed")
@@ -156,7 +160,7 @@ def build_report(
     return AcceptanceReport(
         generated_at=utcnow().isoformat(timespec="seconds"),
         evalkit_version=__version__,
-        git_commit=_git_commit(root),
+        git_commit=git_commit or _git_commit(root),
         python=platform.python_version(),
         platform=platform.platform(),
         provider_keys_present=[k for k in PROVIDER_KEYS if os.environ.get(k)],
@@ -234,6 +238,7 @@ def run_acceptance(
     """Execute the whole suite (including integration_local tests) with JUnit output."""
     junit = junit or (root / "data" / "acceptance" / f"junit-{utcnow():%Y%m%dT%H%M%S}.xml")
     junit.parent.mkdir(parents=True, exist_ok=True)
+    commit = _git_commit(root)  # before the run writes its own outputs into the tree
     cmd = [
         python or sys.executable,
         "-m",
@@ -247,7 +252,7 @@ def run_acceptance(
         *(pytest_args or []),
     ]
     subprocess.run(cmd, cwd=root, check=False, timeout=3600)  # failures are reported, not raised
-    report = build_report(parse_junit(junit), junit_path=junit, root=root)
+    report = build_report(parse_junit(junit), junit_path=junit, root=root, git_commit=commit)
     if out is not None:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(render_markdown(report), encoding="utf-8")
